@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BAASH — Venue Registration</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">B</div>
+        <div>
+          <div class="brand-name">BAASH</div>
+          <div class="brand-sub">Partner Registration</div>
+        </div>
+      </div>
+      <div class="secure">🔒 Secure Registration</div>
+    </header>
+
+    <main class="container">
+      <div class="intro">
+        <div>
+          <div class="eyebrow">PARTNER ONBOARDING</div>
+          <h1>Venue Registration</h1>
+          <p>Complete the details below to register your venue and submit KYC documents.</p>
+        </div>
+        <div class="step-badge"><span id="stepNumber">1</span> / 4</div>
+      </div>
+
+      <div class="progress">
+        <div class="progress-item active" data-step="1"><span>1</span><label>Venue Details</label></div>
+        <div class="line"></div>
+        <div class="progress-item" data-step="2"><span>2</span><label>Owner Details</label></div>
+        <div class="line"></div>
+        <div class="progress-item" data-step="3"><span>3</span><label>KYC Documents</label></div>
+        <div class="line"></div>
+        <div class="progress-item" data-step="4"><span>4</span><label>Agreement</label></div>
+      </div>
+
+      <form id="registrationForm" novalidate>
+        <!-- STEP 1 -->
+        <section class="form-step active" data-step="1">
+          <div class="section-title">
+            <h2>Venue Details</h2>
+            <p>Tell us about your venue and business.</p>
+          </div>
+
+          <div class="grid">
+            <div class="field full">
+              <label>Venue Name <b>*</b></label>
+              <input name="venueName" type="text" placeholder="Enter venue name" required>
+            </div>
+
+            <div class="field full">
+              <label>Nature of Business <b>*</b></label>
+              <select name="natureOfBusiness" required>
+                <option value="">Select nature of business</option>
+                <option>Restaurant — Sit-down dining</option>
+                <option>Cafe — Coffee, light bites</option>
+                <option>Bar — Pub, cocktail bar</option>
+                <option>Nightclub — Late-night venue</option>
+                <option>Lounge — Music, seating, drinks</option>
+                <option>Hotel — Rooms + amenities</option>
+                <option>Resort — Multi-day stays</option>
+                <option>Event Space — Banquets, weddings</option>
+                <option>Activity Center — Bowling, arcade, gaming</option>
+                <option>Tour Operator — Travel packages</option>
+                <option>Experience Provider — Misc. experiences</option>
+              </select>
+            </div>
+
+            <div class="field full">
+              <label>Venue Address <b>*</b></label>
+              <textarea name="venueAddress" placeholder="Enter complete venue address" required></textarea>
+            </div>
+
+            <div class="field">
+              <label>City <b>*</b></label>
+              <input name="city" type="text" placeholder="City" required>
+            </div>
+            <div class="field">
+              <label>State <b>*</b></label>
+              <input name="state" type="text" placeholder="State" required>
+            </div>
+            <div class="field">
+              <label>PIN Code <b>*</b></label>
+              <input name="pinCode" inputmode="numeric" maxlength="6" placeholder="000000" required>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="button" class="btn primary" onclick="nextStep()">Continue <span>→</span></button>
+          </div>
+        </section>
+
+        <!-- STEP 2 -->
+        <section class="form-step" data-step="2">
+          <div class="section-title">
+            <h2>Legal & Owner Details</h2>
+            <p>Provide the legal and primary owner information.</p>
+          </div>
+
+          <div class="grid">
+            <div class="field full">
+              <label>Legal Name <b>*</b></label>
+              <input name="legalName" type="text" placeholder="Legal / registered business name" required>
+            </div>
+
+            <div class="field">
+              <label>Owner Name <b>*</b></label>
+              <input name="ownerName" type="text" placeholder="Full name" required>
+            </div>
+            <div class="field">
+              <label>Owner Mobile Number <b>*</b></label>
+              <input name="ownerMobile" type="tel" inputmode="tel" placeholder="+91 XXXXX XXXXX" required>
+            </div>
+
+            <div class="field">
+              <label>Owner Email <b>*</b></label>
+              <input name="ownerEmail" type="email" placeholder="owner@example.com" required>
+            </div>
+            <div class="field">
+              <label>GST Number</label>
+              <input name="gstNumber" type="text" maxlength="15" placeholder="GSTIN (if applicable)">
+            </div>
+
+            <div class="field">
+              <label>PAN Number <b>*</b></label>
+              <input name="panNumber" type="text" maxlength="10" placeholder="ABCDE1234F" required>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="button" class="btn secondary" onclick="prevStep()">← Back</button>
+            <button type="button" class="btn primary" onclick="nextStep()">Continue <span>→</span></button>
+          </div>
+        </section>
+
+        <!-- STEP 3 -->
+        <section class="form-step" data-step="3">
+          <div class="section-title">
+            <h2>KYC Documents</h2>
+            <p>Upload clear PDF, JPG or PNG files. Maximum recommended size: 10 MB per file.</p>
+          </div>
+
+          <div class="upload-grid">
+            <label class="upload-card">
+              <input type="file" name="tradeLicense" accept=".pdf,.jpg,.jpeg,.png" required>
+              <span class="upload-icon">↑</span>
+              <strong>Business / Trade License <b>*</b></strong>
+              <small>PDF, JPG or PNG</small>
+              <span class="file-name">Choose file</span>
+            </label>
+
+            <label class="upload-card">
+              <input type="file" name="gstCertificate" accept=".pdf,.jpg,.jpeg,.png">
+              <span class="upload-icon">↑</span>
+              <strong>GST Certificate</strong>
+              <small>PDF, JPG or PNG</small>
+              <span class="file-name">Choose file</span>
+            </label>
+
+            <label class="upload-card">
+              <input type="file" name="ownerAadhaar" accept=".pdf,.jpg,.jpeg,.png" required>
+              <span class="upload-icon">↑</span>
+              <strong>Aadhaar Card (Owner) <b>*</b></strong>
+              <small>PDF, JPG or PNG</small>
+              <span class="file-name">Choose file</span>
+            </label>
+
+            <label class="upload-card">
+              <input type="file" name="businessPan" accept=".pdf,.jpg,.jpeg,.png" required>
+              <span class="upload-icon">↑</span>
+              <strong>PAN Card (Business / Entity) <b>*</b></strong>
+              <small>PDF, JPG or PNG</small>
+              <span class="file-name">Choose file</span>
+            </label>
+
+            <label class="upload-card">
+              <input type="file" name="cancelledCheque" accept=".pdf,.jpg,.jpeg,.png" required>
+              <span class="upload-icon">↑</span>
+              <strong>Cancelled Cheque <b>*</b></strong>
+              <small>PDF, JPG or PNG</small>
+              <span class="file-name">Choose file</span>
+            </label>
+
+            <label class="upload-card">
+              <input type="file" name="otherLicense" accept=".pdf,.jpg,.jpeg,.png">
+              <span class="upload-icon">↑</span>
+              <strong>Other License</strong>
+              <small>Optional</small>
+              <span class="file-name">Choose file</span>
+            </label>
+          </div>
+
+          <div class="declaration">
+            <label>
+              <input type="checkbox" name="declaration" required>
+              <span>I confirm that the information and documents submitted are true, accurate and valid.</span>
+            </label>
+          </div>
+
+          <div class="actions">
+            <button type="button" class="btn secondary" onclick="prevStep()">← Back</button>
+            <button type="submit" class="btn primary" id="submitBtn">Submit Registration</button>
+          </div>
+
+        <!-- STEP 4 -->
+        <section class="form-step" data-step="4">
+          <div class="section-title">
+            <h2>Vendor Agreement</h2>
+            <p>Review the temporary agreement and sign electronically to complete registration.</p>
+          </div>
+
+          <div class="demo-label">DEMO VENDOR AGREEMENT — FOR TESTING PURPOSES ONLY</div>
+
+          <div class="agreement-box" id="agreementBox">
+            <h3>BAASH Vendor Agreement</h3>
+            <p><strong>Agreement Version:</strong> DEMO-1.0</p>
+            <p>This Demo Vendor Agreement is entered into between <strong>BAASH</strong> (“Platform”) and the venue/vendor identified in this registration (“Vendor”).</p>
+
+            <h4>1. Vendor & Venue Details</h4>
+            <p>Venue: <span id="agreementVenue">—</span><br>
+            Legal Name: <span id="agreementLegal">—</span><br>
+            Owner: <span id="agreementOwner">—</span></p>
+
+            <h4>2. Platform Services</h4>
+            <p>BAASH may provide venue discovery, customer engagement, booking, offers, experience activation, analytics and related platform services.</p>
+
+            <h4>3. Vendor Responsibilities</h4>
+            <p>The Vendor will provide accurate business information, valid KYC documents, lawful services, appropriate pricing and timely operational updates. The Vendor is responsible for complying with applicable laws, licenses, taxes and safety requirements.</p>
+
+            <h4>4. Commercial Terms</h4>
+            <p>Any commission, subscription, payment processing fee, settlement cycle or other commercial arrangement will be governed by the commercial terms separately communicated or agreed by BAASH and the Vendor.</p>
+
+            <h4>5. Payments & Settlements</h4>
+            <p>Where BAASH facilitates customer payments, settlement will be made according to the applicable commercial arrangement after accounting for refunds, adjustments, taxes and applicable fees.</p>
+
+            <h4>6. Cancellation & Termination</h4>
+            <p>Either party may request termination subject to applicable notice and settlement of outstanding obligations. BAASH may suspend a listing for inaccurate information, compliance concerns, fraud, misuse or material breach.</p>
+
+            <h4>7. Confidentiality</h4>
+            <p>Each party will use reasonable care to protect confidential business information received from the other party and will not disclose it except where required for service delivery or by law.</p>
+
+            <h4>8. Liability</h4>
+            <p>Each party remains responsible for its own acts and omissions. The Vendor remains responsible for the operation, staff, premises, products and services of the venue.</p>
+
+            <h4>9. Dispute Resolution</h4>
+            <p>The parties will first attempt to resolve disputes through good-faith discussion. The final production agreement should specify governing law, jurisdiction and any arbitration mechanism approved by BAASH’s legal counsel.</p>
+
+            <h4>10. Demo Status</h4>
+            <p>This document is a temporary testing template and is not intended to constitute BAASH’s final legal agreement.</p>
+          </div>
+
+          <div class="contract-fields">
+            <div class="declaration">
+              <label class="contract-check">
+                <input type="checkbox" id="agreementAccepted" name="agreementAccepted">
+                <span>I have read the above demo agreement and agree to it for testing purposes.</span>
+              </label>
+            </div>
+
+            <div class="field" style="margin-top:18px">
+              <label>Full Legal Name for Signature <b>*</b></label>
+              <input id="signatureName" name="signatureName" type="text" placeholder="Enter your full legal name">
+            </div>
+
+            <div class="signature-wrap">
+              <div class="signature-head">
+                <label>Draw Signature <b>*</b></label>
+                <button type="button" class="signature-clear" id="clearSignature">Clear Signature</button>
+              </div>
+              <canvas id="signaturePad" class="signature-pad" width="900" height="220"></canvas>
+              <div class="contract-note">Draw your signature inside the box using your mouse, trackpad or touchscreen.</div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="button" class="btn secondary" onclick="prevStep()">← Back</button>
+            <button type="submit" class="btn primary" id="submitBtn">Submit Registration</button>
+          </div>
+        </section>
+      </form>
+
+      <div class="success" id="successBox">
+        <div class="success-icon">✓</div>
+        <div class="eyebrow">REGISTRATION SUBMITTED</div>
+        <h2>Thank you!</h2>
+        <p>Your venue registration has been submitted successfully.</p>
+        <div class="registration-id">
+          <span>Registration ID</span>
+          <strong id="registrationId">BAASH-VEN-2026-00001</strong>
+        </div>
+        <p class="muted">Our team will review your information and documents and contact you once verification is complete.</p>
+      </div>
+
+      <footer>© BAASH. All rights reserved.</footer>
+    </main>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
