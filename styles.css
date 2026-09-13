@@ -23,7 +23,7 @@ body{
     margin:0;
     background:radial-gradient(circle at 50% -10%,#1a1028 0,#08080b 32%);
     color:var(--text);
-    font-family:"Manrope",Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
+    font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
 }
 
 .page{
@@ -448,7 +448,7 @@ body{
     border:0;
     border-radius:9px;
     padding:11px 19px;
-    font:600 11px "Manrope",sans-serif;
+    font:600 12px "Inter",sans-serif;
     cursor:pointer;
     transition:.18s
 }
@@ -665,7 +665,7 @@ body{
     border:0;
     background:transparent;
     color:#b36aff;
-    font:500 9px "Manrope",sans-serif;
+    font:500 10px "Inter",sans-serif;
     cursor:pointer
 }
 
