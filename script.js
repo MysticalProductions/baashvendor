@@ -1,12 +1,31 @@
 /* =========================================================
-   BAASH REGISTRATION FRONTEND
+   BAASH VENUE REGISTRATION
+   FRONTEND SCRIPT
+========================================================= */
+
+
+/* =========================================================
+   GOOGLE APPS SCRIPT WEB APP URL
 ========================================================= */
 
 const API_URL =
   "https://script.google.com/macros/s/AKfycbxMz48LASOHJ4lMvArhtYQpjl-Kp-GSVRN0CN_6YSL8yBAWHJ7ayAK9FejV7H8Br-77/exec";
 
+
+/* =========================================================
+   GLOBAL STATE
+========================================================= */
+
 let currentStep = 1;
+
+let drawing = false;
+
 let hasSignature = false;
+
+
+/* =========================================================
+   DOM ELEMENTS
+========================================================= */
 
 const form =
   document.getElementById(
@@ -30,59 +49,182 @@ const progressItems =
   );
 
 
+const canvas =
+  document.getElementById(
+    "signaturePad"
+  );
+
+
 /* =========================================================
-   STEP NAVIGATION
+   INITIALIZATION
 ========================================================= */
 
-function showStep(step) {
+document.addEventListener(
+  "DOMContentLoaded",
+  function () {
+
+    initializeNavigation();
+
+    initializeFileUploads();
+
+    initializeSignature();
+
+    initializeForm();
+
+    showStep(1);
+
+  }
+);
+
+
+/* =========================================================
+   NAVIGATION INITIALIZATION
+========================================================= */
+
+function initializeNavigation() {
+
+  /*
+   * NEXT BUTTONS
+   *
+   * Section 1 -> Section 2
+   * Section 2 -> Section 3
+   * Section 3 -> Section 4
+   */
+
+  const nextButtons =
+    document.querySelectorAll(
+      ".next"
+    );
+
+
+  nextButtons.forEach(
+    function (button) {
+
+      button.addEventListener(
+        "click",
+        function (event) {
+
+          event.preventDefault();
+
+          console.log(
+            "Continue clicked. Current step:",
+            currentStep
+          );
+
+
+          nextStep();
+
+        }
+      );
+
+    }
+  );
+
+
+  /*
+   * BACK BUTTONS
+   */
+
+  const prevButtons =
+    document.querySelectorAll(
+      ".prev"
+    );
+
+
+  prevButtons.forEach(
+    function (button) {
+
+      button.addEventListener(
+        "click",
+        function (event) {
+
+          event.preventDefault();
+
+          prevStep();
+
+        }
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   SHOW STEP
+========================================================= */
+
+function showStep(
+  step
+) {
 
   if (
     step < 1 ||
     step > formSteps.length
   ) {
+
     return;
+
   }
 
 
   currentStep = step;
 
 
-  formSteps.forEach(section => {
+  /*
+   * Hide / show sections
+   */
 
-    const sectionStep =
-      Number(
-        section.dataset.step
+  formSteps.forEach(
+    function (section) {
+
+      const sectionStep =
+        Number(
+          section.dataset.step
+        );
+
+
+      section.classList.toggle(
+        "active",
+        sectionStep === step
       );
 
-    section.classList.toggle(
-      "active",
-      sectionStep === step
-    );
-
-  });
+    }
+  );
 
 
-  progressItems.forEach(item => {
+  /*
+   * Update progress
+   */
 
-    const itemStep =
-      Number(
-        item.dataset.step
+  progressItems.forEach(
+    function (item) {
+
+      const itemStep =
+        Number(
+          item.dataset.step
+        );
+
+
+      item.classList.toggle(
+        "active",
+        itemStep === step
       );
 
 
-    item.classList.toggle(
-      "active",
-      itemStep === step
-    );
+      item.classList.toggle(
+        "done",
+        itemStep < step
+      );
+
+    }
+  );
 
 
-    item.classList.toggle(
-      "done",
-      itemStep < step
-    );
-
-  });
-
+  /*
+   * Step number
+   */
 
   const stepNumber =
     document.getElementById(
@@ -98,12 +240,21 @@ function showStep(step) {
   }
 
 
+  /*
+   * Populate agreement
+   * when entering Step 4
+   */
+
   if (step === 4) {
 
     populateAgreement();
 
   }
 
+
+  /*
+   * Scroll to top
+   */
 
   window.scrollTo({
     top: 0,
@@ -114,23 +265,94 @@ function showStep(step) {
 
 
 /* =========================================================
-   VALIDATE CURRENT STEP
+   NEXT STEP
 ========================================================= */
 
-function validateStep(step) {
+function nextStep() {
+
+  /*
+   * Validate current section
+   */
+
+  if (
+    !validateStep(
+      currentStep
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  /*
+   * Go to next section
+   */
+
+  if (
+    currentStep <
+    formSteps.length
+  ) {
+
+    showStep(
+      currentStep + 1
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   PREVIOUS STEP
+========================================================= */
+
+function prevStep() {
+
+  if (
+    currentStep > 1
+  ) {
+
+    showStep(
+      currentStep - 1
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   VALIDATE STEP
+========================================================= */
+
+function validateStep(
+  step
+) {
 
   const section =
     document.querySelector(
-      `.form-step[data-step="${step}"]`
+      '.form-step[data-step="' +
+      step +
+      '"]'
     );
 
 
   if (!section) {
 
+    console.error(
+      "Step not found:",
+      step
+    );
+
     return false;
 
   }
 
+
+  /*
+   * Required normal inputs
+   */
 
   const requiredFields =
     Array.from(
@@ -146,7 +368,9 @@ function validateStep(step) {
   ) {
 
 
-    /* FILE */
+    /* ---------------------------------
+       FILE INPUT
+    --------------------------------- */
 
     if (
       field.type === "file"
@@ -154,7 +378,7 @@ function validateStep(step) {
 
       if (
         !field.files ||
-        !field.files.length
+        field.files.length === 0
       ) {
 
         const card =
@@ -163,21 +387,31 @@ function validateStep(step) {
           );
 
 
-        const title =
-          card
-            ? card.querySelector(
-                "strong"
-              )
-            : null;
+        let documentName =
+          "the required document";
+
+
+        if (card) {
+
+          const title =
+            card.querySelector(
+              "strong"
+            );
+
+
+          if (title) {
+
+            documentName =
+              title.textContent.trim();
+
+          }
+
+        }
 
 
         alert(
           "Please upload " +
-          (
-            title
-              ? title.textContent.trim()
-              : "the required document"
-          )
+          documentName
         );
 
 
@@ -185,6 +419,10 @@ function validateStep(step) {
 
       }
 
+
+      /*
+       * 10 MB limit
+       */
 
       if (
         field.files[0].size >
@@ -206,19 +444,25 @@ function validateStep(step) {
     }
 
 
-    /* CHECKBOX */
+    /* ---------------------------------
+       CHECKBOX
+    --------------------------------- */
 
     if (
       field.type === "checkbox"
     ) {
 
-      if (!field.checked) {
-
-        field.focus();
+      if (
+        !field.checked
+      ) {
 
         alert(
           "Please confirm the required declaration."
         );
+
+
+        field.focus();
+
 
         return false;
 
@@ -230,28 +474,39 @@ function validateStep(step) {
     }
 
 
-    /* NORMAL INPUT */
+    /* ---------------------------------
+       NORMAL FIELD
+    --------------------------------- */
 
     if (
-      !field.value.trim()
+      !String(
+        field.value || ""
+      ).trim()
     ) {
-
-      field.focus();
 
       alert(
         "Please complete all required fields."
       );
+
+
+      field.focus();
+
 
       return false;
 
     }
 
 
+    /*
+     * Email / HTML validation
+     */
+
     if (
       !field.checkValidity()
     ) {
 
       field.reportValidity();
+
 
       return false;
 
@@ -260,24 +515,29 @@ function validateStep(step) {
   }
 
 
-  /* AGREEMENT */
+  /*
+   * Agreement-specific validation
+   */
 
-  if (step === 4) {
+  if (
+    step === 4
+  ) {
 
-    const accepted =
+    const agreementAccepted =
       document.getElementById(
         "agreementAccepted"
       );
 
 
     if (
-      !accepted ||
-      !accepted.checked
+      !agreementAccepted ||
+      !agreementAccepted.checked
     ) {
 
       alert(
         "Please accept the BAASH Vendor Agreement."
       );
+
 
       return false;
 
@@ -299,18 +559,27 @@ function validateStep(step) {
         "Please enter the full legal name of the signatory."
       );
 
-      signatureName.focus();
+
+      if (signatureName) {
+
+        signatureName.focus();
+
+      }
+
 
       return false;
 
     }
 
 
-    if (!hasSignature) {
+    if (
+      !hasSignature
+    ) {
 
       alert(
         "Please draw your digital signature."
       );
+
 
       return false;
 
@@ -325,203 +594,144 @@ function validateStep(step) {
 
 
 /* =========================================================
-   NEXT
+   FILE UPLOADS
 ========================================================= */
 
-function nextStep() {
+function initializeFileUploads() {
 
-  console.log(
-    "Continue clicked. Step:",
-    currentStep
+  const fileInputs =
+    document.querySelectorAll(
+      '.upload-card input[type="file"]'
+    );
+
+
+  fileInputs.forEach(
+    function (input) {
+
+      input.addEventListener(
+        "change",
+        function () {
+
+          const card =
+            input.closest(
+              ".upload-card"
+            );
+
+
+          if (!card) {
+
+            return;
+
+          }
+
+
+          const fileName =
+            card.querySelector(
+              ".file-name"
+            );
+
+
+          if (!fileName) {
+
+            return;
+
+          }
+
+
+          if (
+            input.files &&
+            input.files.length > 0
+          ) {
+
+            fileName.textContent =
+              input.files[0].name;
+
+          } else {
+
+            fileName.textContent =
+              "Choose file";
+
+          }
+
+        }
+      );
+
+    }
   );
 
-
-  if (
-    !validateStep(
-      currentStep
-    )
-  ) {
-
-    return;
-
-  }
-
-
-  if (
-    currentStep <
-    formSteps.length
-  ) {
-
-    showStep(
-      currentStep + 1
-    );
-
-  }
-
 }
 
 
 /* =========================================================
-   BACK
-========================================================= */
-
-function prevStep() {
-
-  if (
-    currentStep > 1
-  ) {
-
-    showStep(
-      currentStep - 1
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   BUTTON EVENTS
-========================================================= */
-
-document
-  .querySelectorAll(
-    ".next"
-  )
-  .forEach(button => {
-
-    button.addEventListener(
-      "click",
-      function(event) {
-
-        event.preventDefault();
-
-        nextStep();
-
-      }
-    );
-
-  });
-
-
-document
-  .querySelectorAll(
-    ".prev"
-  )
-  .forEach(button => {
-
-    button.addEventListener(
-      "click",
-      function(event) {
-
-        event.preventDefault();
-
-        prevStep();
-
-      }
-    );
-
-  });
-
-
-/* =========================================================
-   FILE NAME DISPLAY
-========================================================= */
-
-document
-  .querySelectorAll(
-    '.upload-card input[type="file"]'
-  )
-  .forEach(input => {
-
-    input.addEventListener(
-      "change",
-      function() {
-
-        const card =
-          input.closest(
-            ".upload-card"
-          );
-
-
-        if (!card) {
-          return;
-        }
-
-
-        const fileName =
-          card.querySelector(
-            ".file-name"
-          );
-
-
-        if (!fileName) {
-          return;
-        }
-
-
-        if (
-          input.files &&
-          input.files.length
-        ) {
-
-          fileName.textContent =
-            input.files[0].name;
-
-        } else {
-
-          fileName.textContent =
-            "Choose file";
-
-        }
-
-      }
-    );
-
-  });
-
-
-/* =========================================================
-   AGREEMENT DATA
+   AGREEMENT
 ========================================================= */
 
 function populateAgreement() {
 
-  const venue =
-    document.getElementById(
+  const venueName =
+    getValue(
       "venueName"
-    ).value.trim();
+    );
 
 
-  const legal =
-    document.getElementById(
+  const legalName =
+    getValue(
       "legalName"
-    ).value.trim();
+    );
 
 
-  const owner =
-    document.getElementById(
+  const ownerName =
+    getValue(
       "ownerName"
-    ).value.trim();
+    );
 
 
-  document.getElementById(
-    "agreementVenue"
-  ).value =
-    venue || "—";
+  const agreementVenue =
+    document.getElementById(
+      "agreementVenue"
+    );
 
 
-  document.getElementById(
-    "agreementLegal"
-  ).value =
-    legal || "—";
+  const agreementLegal =
+    document.getElementById(
+      "agreementLegal"
+    );
 
 
-  document.getElementById(
-    "agreementOwner"
-  ).value =
-    owner || "—";
+  const agreementOwner =
+    document.getElementById(
+      "agreementOwner"
+    );
 
+
+  if (agreementVenue) {
+
+    agreementVenue.value =
+      venueName || "—";
+
+  }
+
+
+  if (agreementLegal) {
+
+    agreementLegal.value =
+      legalName || "—";
+
+  }
+
+
+  if (agreementOwner) {
+
+    agreementOwner.value =
+      ownerName || "—";
+
+  }
+
+
+  /*
+   * Automatically populate signer name
+   * with legal name first.
+   */
 
   const signatureName =
     document.getElementById(
@@ -535,8 +745,8 @@ function populateAgreement() {
   ) {
 
     signatureName.value =
-      legal ||
-      owner ||
+      legalName ||
+      ownerName ||
       "";
 
   }
@@ -545,38 +755,148 @@ function populateAgreement() {
 
 
 /* =========================================================
-   SIGNATURE PAD
+   GET VALUE
 ========================================================= */
 
-const canvas =
-  document.getElementById(
-    "signaturePad"
+function getValue(
+  id
+) {
+
+  const element =
+    document.getElementById(
+      id
+    );
+
+
+  if (!element) {
+
+    return "";
+
+  }
+
+
+  return String(
+    element.value || ""
+  ).trim();
+
+}
+
+
+/* =========================================================
+   SIGNATURE INITIALIZATION
+========================================================= */
+
+function initializeSignature() {
+
+  if (!canvas) {
+
+    console.error(
+      "Signature canvas not found."
+    );
+
+
+    return;
+
+  }
+
+
+  const ctx =
+    canvas.getContext(
+      "2d"
+    );
+
+
+  ctx.lineWidth =
+    2.5;
+
+
+  ctx.lineCap =
+    "round";
+
+
+  ctx.lineJoin =
+    "round";
+
+
+  /*
+   * Mouse
+   */
+
+  canvas.addEventListener(
+    "mousedown",
+    startSignature
   );
 
 
-const ctx =
-  canvas.getContext(
-    "2d"
+  canvas.addEventListener(
+    "mousemove",
+    drawSignature
   );
 
 
-ctx.lineWidth = 2.5;
-
-ctx.lineCap =
-  "round";
-
-ctx.lineJoin =
-  "round";
+  window.addEventListener(
+    "mouseup",
+    stopSignature
+  );
 
 
-let drawing = false;
+  /*
+   * Touch
+   */
+
+  canvas.addEventListener(
+    "touchstart",
+    startSignature,
+    {
+      passive: false
+    }
+  );
+
+
+  canvas.addEventListener(
+    "touchmove",
+    drawSignature,
+    {
+      passive: false
+    }
+  );
+
+
+  canvas.addEventListener(
+    "touchend",
+    stopSignature
+  );
+
+
+  /*
+   * Clear
+   */
+
+  const clearButton =
+    document.getElementById(
+      "clearSignature"
+    );
+
+
+  if (clearButton) {
+
+    clearButton.addEventListener(
+      "click",
+      clearSignature
+    );
+
+  }
+
+}
 
 
 /* =========================================================
    SIGNATURE POSITION
 ========================================================= */
 
-function getCanvasPoint(event) {
+function getCanvasPoint(
+  event
+) {
 
   const rect =
     canvas.getBoundingClientRect();
@@ -589,11 +909,12 @@ function getCanvasPoint(event) {
 
   if (
     event.touches &&
-    event.touches.length
+    event.touches.length > 0
   ) {
 
     clientX =
       event.touches[0].clientX;
+
 
     clientY =
       event.touches[0].clientY;
@@ -602,6 +923,7 @@ function getCanvasPoint(event) {
 
     clientX =
       event.clientX;
+
 
     clientY =
       event.clientY;
@@ -612,14 +934,21 @@ function getCanvasPoint(event) {
   return {
 
     x:
-      (clientX - rect.left) *
+      (
+        clientX -
+        rect.left
+      ) *
       (
         canvas.width /
         rect.width
       ),
 
+
     y:
-      (clientY - rect.top) *
+      (
+        clientY -
+        rect.top
+      ) *
       (
         canvas.height /
         rect.height
@@ -634,11 +963,20 @@ function getCanvasPoint(event) {
    START SIGNATURE
 ========================================================= */
 
-function startSignature(event) {
+function startSignature(
+  event
+) {
 
   event.preventDefault();
 
+
   drawing = true;
+
+
+  const ctx =
+    canvas.getContext(
+      "2d"
+    );
 
 
   const point =
@@ -649,6 +987,7 @@ function startSignature(event) {
 
   ctx.beginPath();
 
+
   ctx.moveTo(
     point.x,
     point.y
@@ -658,17 +997,27 @@ function startSignature(event) {
 
 
 /* =========================================================
-   DRAW
+   DRAW SIGNATURE
 ========================================================= */
 
-function drawSignature(event) {
+function drawSignature(
+  event
+) {
 
   if (!drawing) {
+
     return;
+
   }
 
 
   event.preventDefault();
+
+
+  const ctx =
+    canvas.getContext(
+      "2d"
+    );
 
 
   const point =
@@ -686,13 +1035,14 @@ function drawSignature(event) {
   ctx.stroke();
 
 
-  hasSignature = true;
+  hasSignature =
+    true;
 
 }
 
 
 /* =========================================================
-   STOP
+   STOP SIGNATURE
 ========================================================= */
 
 function stopSignature() {
@@ -703,86 +1053,466 @@ function stopSignature() {
 
 
 /* =========================================================
-   MOUSE EVENTS
-========================================================= */
-
-canvas.addEventListener(
-  "mousedown",
-  startSignature
-);
-
-
-canvas.addEventListener(
-  "mousemove",
-  drawSignature
-);
-
-
-window.addEventListener(
-  "mouseup",
-  stopSignature
-);
-
-
-/* =========================================================
-   TOUCH EVENTS
-========================================================= */
-
-canvas.addEventListener(
-  "touchstart",
-  startSignature,
-  {
-    passive: false
-  }
-);
-
-
-canvas.addEventListener(
-  "touchmove",
-  drawSignature,
-  {
-    passive: false
-  }
-);
-
-
-canvas.addEventListener(
-  "touchend",
-  stopSignature
-);
-
-
-/* =========================================================
    CLEAR SIGNATURE
 ========================================================= */
 
-document
-  .getElementById(
-    "clearSignature"
-  )
-  .addEventListener(
-    "click",
-    function() {
+function clearSignature() {
 
-      ctx.clearRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
+  if (!canvas) {
+
+    return;
+
+  }
+
+
+  const ctx =
+    canvas.getContext(
+      "2d"
+    );
+
+
+  ctx.clearRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+
+  hasSignature =
+    false;
+
+}
+
+
+/* =========================================================
+   FORM INITIALIZATION
+========================================================= */
+
+function initializeForm() {
+
+  if (!form) {
+
+    console.error(
+      "Registration form not found."
+    );
+
+
+    return;
+
+  }
+
+
+  form.addEventListener(
+    "submit",
+    handleSubmit
+  );
+
+}
+
+
+/* =========================================================
+   HANDLE SUBMIT
+========================================================= */
+
+async function handleSubmit(
+  event
+) {
+
+  event.preventDefault();
+
+
+  console.log(
+    "Final registration submission started."
+  );
+
+
+  /*
+   * Validate Step 4
+   */
+
+  if (
+    !validateStep(4)
+  ) {
+
+    return;
+
+  }
+
+
+  const submitButton =
+    document.getElementById(
+      "submitBtn"
+    );
+
+
+  if (submitButton) {
+
+    submitButton.disabled =
+      true;
+
+
+    submitButton.textContent =
+      "Submitting...";
+
+  }
+
+
+  try {
+
+    /*
+     * Build payload
+     */
+
+    const payload =
+      await buildPayload();
+
+
+    console.log(
+      "Payload prepared."
+    );
+
+
+    /*
+     * Send to Google Apps Script
+     */
+
+    const response =
+      await fetch(
+        API_URL,
+        {
+          method:
+            "POST",
+
+          headers: {
+
+            "Content-Type":
+              "text/plain;charset=utf-8"
+
+          },
+
+          body:
+            JSON.stringify(
+              payload
+            )
+
+        }
       );
 
 
-      hasSignature = false;
+    console.log(
+      "Google Apps Script HTTP status:",
+      response.status
+    );
+
+
+    /*
+     * IMPORTANT:
+     *
+     * Read text first.
+     *
+     * Do NOT directly call response.json().
+     */
+
+    const responseText =
+      await response.text();
+
+
+    console.log(
+      "Google Apps Script raw response:",
+      responseText
+    );
+
+
+    /*
+     * Check empty response
+     */
+
+    if (
+      !responseText
+    ) {
+
+      throw new Error(
+        "Google Apps Script returned an empty response."
+      );
+
+    }
+
+
+    /*
+     * Parse JSON
+     */
+
+    let result;
+
+
+    try {
+
+      result =
+        JSON.parse(
+          responseText
+        );
+
+    } catch (jsonError) {
+
+      console.error(
+        "The server returned non-JSON data:"
+      );
+
+
+      console.error(
+        responseText
+      );
+
+
+      throw new Error(
+        "The BAASH server returned an HTML/error page instead of JSON. Check the Apps Script deployment and Web App URL."
+      );
+
+    }
+
+
+    /*
+     * Server-side failure
+     */
+
+    if (
+      result.success !== true &&
+      result.ok !== true
+    ) {
+
+      throw new Error(
+        result.error ||
+        result.message ||
+        "Registration submission failed."
+      );
+
+    }
+
+
+    /*
+     * SUCCESS
+     */
+
+    showSuccess(
+      result.registrationId
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "REGISTRATION ERROR:",
+      error
+    );
+
+
+    alert(
+      error.message ||
+      "Unable to submit registration."
+    );
+
+
+    if (submitButton) {
+
+      submitButton.disabled =
+        false;
+
+
+      submitButton.textContent =
+        "Submit Registration";
+
+    }
+
+  }
+
+}
+
+
+/* =========================================================
+   BUILD PAYLOAD
+========================================================= */
+
+async function buildPayload() {
+
+  const payload = {};
+
+
+  /*
+   * Normal form fields
+   */
+
+  const normalFields = [
+
+    "venueName",
+
+    "natureOfBusiness",
+
+    "venueAddress",
+
+    "city",
+
+    "state",
+
+    "pinCode",
+
+    "legalName",
+
+    "ownerName",
+
+    "ownerEmail",
+
+    "ownerMobile",
+
+    "gstNumber",
+
+    "panNumber"
+
+  ];
+
+
+  normalFields.forEach(
+    function(name) {
+
+      const element =
+        form.elements[name];
+
+
+      if (element) {
+
+        payload[name] =
+          String(
+            element.value || ""
+          ).trim();
+
+      }
 
     }
   );
 
 
+  /*
+   * Documents
+   */
+
+  payload.files =
+    await collectFiles();
+
+
+  /*
+   * Agreement
+   */
+
+  const signatureName =
+    document.getElementById(
+      "signatureName"
+    );
+
+
+  const agreementAccepted =
+    document.getElementById(
+      "agreementAccepted"
+    );
+
+
+  payload.contract = {
+
+    accepted:
+      agreementAccepted
+        ? agreementAccepted.checked
+        : false,
+
+    version:
+      "DEMO-1.0",
+
+    signerName:
+      signatureName
+        ? signatureName.value.trim()
+        : "",
+
+    signatureDataUrl:
+      canvas
+        ? canvas.toDataURL(
+            "image/png"
+          )
+        : ""
+
+  };
+
+
+  return payload;
+
+}
+
+
 /* =========================================================
-   FILE → BASE64
+   COLLECT DOCUMENTS
 ========================================================= */
 
-async function fileToBase64(file) {
+async function collectFiles() {
+
+  const fileNames = [
+
+    "tradeLicense",
+
+    "gstCertificate",
+
+    "ownerAadhaar",
+
+    "businessPan",
+
+    "cancelledCheque",
+
+    "otherLicense"
+
+  ];
+
+
+  const files = {};
+
+
+  for (
+    const name
+    of fileNames
+  ) {
+
+    const input =
+      form.elements[name];
+
+
+    if (
+      input &&
+      input.files &&
+      input.files.length > 0
+    ) {
+
+      files[name] =
+        await fileToBase64(
+          input.files[0]
+        );
+
+    } else {
+
+      files[name] =
+        null;
+
+    }
+
+  }
+
+
+  return files;
+
+}
+
+
+/* =========================================================
+   FILE TO BASE64
+========================================================= */
+
+async function fileToBase64(
+  file
+) {
 
   if (!file) {
 
@@ -791,11 +1521,36 @@ async function fileToBase64(file) {
   }
 
 
-  const bytes =
+  /*
+   * Maximum 10 MB
+   */
+
+  if (
+    file.size >
+    10 * 1024 * 1024
+  ) {
+
+    throw new Error(
+      "File " +
+      file.name +
+      " is larger than 10 MB."
+    );
+
+  }
+
+
+  const arrayBuffer =
     await file.arrayBuffer();
 
 
-  let binary = "";
+  const bytes =
+    new Uint8Array(
+      arrayBuffer
+    );
+
+
+  let binary =
+    "";
 
 
   const chunkSize =
@@ -804,17 +1559,16 @@ async function fileToBase64(file) {
 
   for (
     let i = 0;
-    i < bytes.byteLength;
+    i < bytes.length;
     i += chunkSize
   ) {
 
     const chunk =
-      new Uint8Array(
-        bytes,
+      bytes.subarray(
         i,
         Math.min(
-          chunkSize,
-          bytes.byteLength - i
+          i + chunkSize,
+          bytes.length
         )
       );
 
@@ -837,225 +1591,13 @@ async function fileToBase64(file) {
       "application/octet-stream",
 
     data:
-      btoa(binary)
+      btoa(
+        binary
+      )
 
   };
 
 }
-
-
-/* =========================================================
-   COLLECT DOCUMENTS
-========================================================= */
-
-async function collectFiles() {
-
-  const names = [
-
-    "tradeLicense",
-
-    "gstCertificate",
-
-    "ownerAadhaar",
-
-    "businessPan",
-
-    "cancelledCheque",
-
-    "otherLicense"
-
-  ];
-
-
-  const files = {};
-
-
-  for (
-    const name
-    of names
-  ) {
-
-    const input =
-      form.elements[name];
-
-
-    files[name] =
-      await fileToBase64(
-
-        input &&
-        input.files &&
-        input.files.length
-          ? input.files[0]
-          : null
-
-      );
-
-  }
-
-
-  return files;
-
-}
-
-
-/* =========================================================
-   SUBMIT
-========================================================= */
-
-form.addEventListener(
-  "submit",
-  async function(event) {
-
-    event.preventDefault();
-
-
-    if (
-      !validateStep(4)
-    ) {
-
-      return;
-
-    }
-
-
-    const submitButton =
-      document.getElementById(
-        "submitBtn"
-      );
-
-
-    submitButton.disabled =
-      true;
-
-
-    submitButton.textContent =
-      "Submitting...";
-
-
-    try {
-
-      const formData =
-        new FormData(form);
-
-
-      const payload = {};
-
-
-      for (
-        const [key, value]
-        of formData.entries()
-      ) {
-
-        if (
-          !(value instanceof File)
-        ) {
-
-          payload[key] =
-            value;
-
-        }
-
-      }
-
-
-      /* DOCUMENTS */
-
-      payload.files =
-        await collectFiles();
-
-
-      /* CONTRACT */
-
-      payload.contract = {
-
-        accepted: true,
-
-        version:
-          "DEMO-1.0",
-
-        signerName:
-          document
-            .getElementById(
-              "signatureName"
-            )
-            .value
-            .trim(),
-
-        signatureDataUrl:
-          canvas.toDataURL(
-            "image/png"
-          )
-
-      };
-
-
-      /* SEND TO APPS SCRIPT */
-
-      const response =
-        await fetch(
-          API_URL,
-          {
-            method: "POST",
-
-            headers: {
-              "Content-Type":
-                "text/plain;charset=utf-8"
-            },
-
-            body:
-              JSON.stringify(
-                payload
-              )
-          }
-        );
-
-
-      const result =
-        await response.json();
-
-
-      if (
-        !result.success &&
-        !result.ok
-      ) {
-
-        throw new Error(
-          result.error ||
-          "Registration submission failed."
-        );
-
-      }
-
-
-      showSuccess(
-        result.registrationId
-      );
-
-
-    } catch (error) {
-
-      console.error(
-        error
-      );
-
-
-      alert(
-        error.message ||
-        "Unable to submit registration."
-      );
-
-
-      submitButton.disabled =
-        false;
-
-
-      submitButton.textContent =
-        "Submit Registration";
-
-    }
-
-  }
-);
 
 
 /* =========================================================
@@ -1066,9 +1608,21 @@ function showSuccess(
   registrationId
 ) {
 
-  form.style.display =
-    "none";
+  /*
+   * Hide form
+   */
 
+  if (form) {
+
+    form.style.display =
+      "none";
+
+  }
+
+
+  /*
+   * Hide progress
+   */
 
   const progress =
     document.querySelector(
@@ -1084,6 +1638,10 @@ function showSuccess(
   }
 
 
+  /*
+   * Hide intro
+   */
+
   const intro =
     document.querySelector(
       ".intro"
@@ -1098,26 +1656,54 @@ function showSuccess(
   }
 
 
-  document.getElementById(
-    "registrationId"
-  ).textContent =
-    registrationId ||
-    generateFallbackId();
+  /*
+   * Registration ID
+   */
+
+  const idElement =
+    document.getElementById(
+      "registrationId"
+    );
 
 
-  document
-    .getElementById(
+  if (idElement) {
+
+    idElement.textContent =
+      registrationId ||
+      generateFallbackId();
+
+  }
+
+
+  /*
+   * Show success
+   */
+
+  const successBox =
+    document.getElementById(
       "successBox"
-    )
-    .classList.add(
+    );
+
+
+  if (successBox) {
+
+    successBox.classList.add(
       "show"
     );
+
+  }
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
 
 }
 
 
 /* =========================================================
-   FALLBACK ID
+   FALLBACK REGISTRATION ID
 ========================================================= */
 
 function generateFallbackId() {
@@ -1127,12 +1713,16 @@ function generateFallbackId() {
 
 
   const pad =
-    number =>
-      String(number)
-        .padStart(
-          2,
-          "0"
-        );
+    function(number) {
+
+      return String(
+        number
+      ).padStart(
+        2,
+        "0"
+      );
+
+    };
 
 
   return (
@@ -1153,16 +1743,10 @@ function generateFallbackId() {
 
     Math.floor(
       1000 +
-      Math.random() * 9000
+      Math.random() *
+      9000
     )
 
   );
 
 }
-
-
-/* =========================================================
-   START
-========================================================= */
-
-showStep(1);
