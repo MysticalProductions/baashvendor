@@ -1,1752 +1,305 @@
-/* =========================================================
-   BAASH VENUE REGISTRATION
-   FRONTEND SCRIPT
-========================================================= */
-
-
-/* =========================================================
-   GOOGLE APPS SCRIPT WEB APP URL
-========================================================= */
-
-const API_URL =
-  "https://script.google.com/macros/s/AKfycbxMz48LASOHJ4lMvArhtYQpjl-Kp-GSVRN0CN_6YSL8yBAWHJ7ayAK9FejV7H8Br-77/exec";
-
-
-/* =========================================================
-   GLOBAL STATE
-========================================================= */
+const API_URL = "https://script.google.com/macros/s/AKfycbxMz48LASOHJ4lMvArhtYQpjl-Kp-GSVRN0CN_6YSL8yBAWHJ7ayAK9FejV7H8Br-77/exec";
+const LOCATION_API = "https://countriesnow.space/api/v0.1";
 
 let currentStep = 1;
-
 let drawing = false;
-
 let hasSignature = false;
+let processTimer = null;
 
+const form = document.getElementById("registrationForm");
+const canvas = document.getElementById("signaturePad");
+const ctx = canvas.getContext("2d");
+const stateSelect = document.getElementById("state");
+const citySelect = document.getElementById("city");
 
-/* =========================================================
-   DOM ELEMENTS
-========================================================= */
-
-const form =
-  document.getElementById(
-    "registrationForm"
-  );
-
-
-const formSteps =
-  Array.from(
-    document.querySelectorAll(
-      ".form-step"
-    )
-  );
-
-
-const progressItems =
-  Array.from(
-    document.querySelectorAll(
-      ".progress-item"
-    )
-  );
-
-
-const canvas =
-  document.getElementById(
-    "signaturePad"
-  );
-
-
-/* =========================================================
-   INITIALIZATION
-========================================================= */
-
-document.addEventListener(
-  "DOMContentLoaded",
-  function () {
-
-    initializeNavigation();
-
-    initializeFileUploads();
-
-    initializeSignature();
-
-    initializeForm();
-
-    showStep(1);
-
-  }
-);
-
-
-/* =========================================================
-   NAVIGATION INITIALIZATION
-========================================================= */
-
-function initializeNavigation() {
-
-  /*
-   * NEXT BUTTONS
-   *
-   * Section 1 -> Section 2
-   * Section 2 -> Section 3
-   * Section 3 -> Section 4
-   */
-
-  const nextButtons =
-    document.querySelectorAll(
-      ".next"
-    );
-
-
-  nextButtons.forEach(
-    function (button) {
-
-      button.addEventListener(
-        "click",
-        function (event) {
-
-          event.preventDefault();
-
-          console.log(
-            "Continue clicked. Current step:",
-            currentStep
-          );
-
-
-          nextStep();
-
-        }
-      );
-
-    }
-  );
-
-
-  /*
-   * BACK BUTTONS
-   */
-
-  const prevButtons =
-    document.querySelectorAll(
-      ".prev"
-    );
-
-
-  prevButtons.forEach(
-    function (button) {
-
-      button.addEventListener(
-        "click",
-        function (event) {
-
-          event.preventDefault();
-
-          prevStep();
-
-        }
-      );
-
-    }
-  );
-
+/* ---------- Welcome / navigation ---------- */
+function startRegistration(){
+  document.getElementById("welcomePage").classList.add("hidden");
+  document.getElementById("registrationPage").classList.remove("hidden");
+  window.scrollTo({top:0,behavior:"smooth"});
 }
 
-
-/* =========================================================
-   SHOW STEP
-========================================================= */
-
-function showStep(
-  step
-) {
-
-  if (
-    step < 1 ||
-    step > formSteps.length
-  ) {
-
-    return;
-
+document.getElementById("startRegistration").addEventListener("click", startRegistration);
+document.getElementById("homeButton").addEventListener("click", ()=>{
+  if(!document.getElementById("registrationPage").classList.contains("hidden")){
+    if(!confirm("Return to the welcome page? Your entered information will remain on this page.")) return;
   }
+  document.getElementById("registrationPage").classList.add("hidden");
+  document.getElementById("welcomePage").classList.remove("hidden");
+  window.scrollTo({top:0,behavior:"smooth"});
+});
 
+document.getElementById("successHome").addEventListener("click",()=>location.reload());
 
-  currentStep = step;
-
-
-  /*
-   * Hide / show sections
-   */
-
-  formSteps.forEach(
-    function (section) {
-
-      const sectionStep =
-        Number(
-          section.dataset.step
-        );
-
-
-      section.classList.toggle(
-        "active",
-        sectionStep === step
-      );
-
-    }
-  );
-
-
-  /*
-   * Update progress
-   */
-
-  progressItems.forEach(
-    function (item) {
-
-      const itemStep =
-        Number(
-          item.dataset.step
-        );
-
-
-      item.classList.toggle(
-        "active",
-        itemStep === step
-      );
-
-
-      item.classList.toggle(
-        "done",
-        itemStep < step
-      );
-
-    }
-  );
-
-
-  /*
-   * Step number
-   */
-
-  const stepNumber =
-    document.getElementById(
-      "stepNumber"
-    );
-
-
-  if (stepNumber) {
-
-    stepNumber.textContent =
-      step;
-
-  }
-
-
-  /*
-   * Populate agreement
-   * when entering Step 4
-   */
-
-  if (step === 4) {
-
-    populateAgreement();
-
-  }
-
-
-  /*
-   * Scroll to top
-   */
-
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
+/* ---------- Validation ---------- */
+function setCustomMessages(){
+  const fields = form.querySelectorAll("input, select, textarea");
+  fields.forEach(field=>{
+    field.addEventListener("input",()=>{
+      if(field.name === "ownerMobile" || field.name === "pinCode") field.value = field.value.replace(/\D/g, "");
+      if(field.name === "panNumber" || field.name === "gstNumber") field.value = field.value.toUpperCase().replace(/\s/g, "");
+      if(field.name === "ownerName") field.value = field.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ.' -]/g, "");
+    });
   });
-
 }
 
+function validateStep(step){
+  const section = document.querySelector(`.form-step[data-step="${step}"]`);
+  if(!section) return true;
 
-/* =========================================================
-   NEXT STEP
-========================================================= */
-
-function nextStep() {
-
-  /*
-   * Validate current section
-   */
-
-  if (
-    !validateStep(
-      currentStep
-    )
-  ) {
-
-    return;
-
-  }
-
-
-  /*
-   * Go to next section
-   */
-
-  if (
-    currentStep <
-    formSteps.length
-  ) {
-
-    showStep(
-      currentStep + 1
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   PREVIOUS STEP
-========================================================= */
-
-function prevStep() {
-
-  if (
-    currentStep > 1
-  ) {
-
-    showStep(
-      currentStep - 1
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   VALIDATE STEP
-========================================================= */
-
-function validateStep(
-  step
-) {
-
-  const section =
-    document.querySelector(
-      '.form-step[data-step="' +
-      step +
-      '"]'
-    );
-
-
-  if (!section) {
-
-    console.error(
-      "Step not found:",
-      step
-    );
-
-    return false;
-
-  }
-
-
-  /*
-   * Required normal inputs
-   */
-
-  const requiredFields =
-    Array.from(
-      section.querySelectorAll(
-        "input[required], select[required], textarea[required]"
-      )
-    );
-
-
-  for (
-    const field
-    of requiredFields
-  ) {
-
-
-    /* ---------------------------------
-       FILE INPUT
-    --------------------------------- */
-
-    if (
-      field.type === "file"
-    ) {
-
-      if (
-        !field.files ||
-        field.files.length === 0
-      ) {
-
-        const card =
-          field.closest(
-            ".upload-card"
-          );
-
-
-        let documentName =
-          "the required document";
-
-
-        if (card) {
-
-          const title =
-            card.querySelector(
-              "strong"
-            );
-
-
-          if (title) {
-
-            documentName =
-              title.textContent.trim();
-
-          }
-
-        }
-
-
-        alert(
-          "Please upload " +
-          documentName
-        );
-
-
+  if(step === 3){
+    for(const input of section.querySelectorAll('input[type="file"]')){
+      if(input.required && !input.files.length){
+        alert(`Please upload: ${input.closest(".upload-card").querySelector("strong").innerText.replace(" *","")}`);
+        input.closest(".upload-card").scrollIntoView({behavior:"smooth",block:"center"});
         return false;
-
       }
-
-
-      /*
-       * 10 MB limit
-       */
-
-      if (
-        field.files[0].size >
-        10 * 1024 * 1024
-      ) {
-
-        alert(
-          "Each document must be less than 10 MB."
-        );
-
-
+      if(input.files[0] && input.files[0].size > 10 * 1024 * 1024){
+        alert(`The file "${input.files[0].name}" is larger than 10 MB.`);
         return false;
-
       }
-
-
-      continue;
-
     }
+  }
 
-
-    /* ---------------------------------
-       CHECKBOX
-    --------------------------------- */
-
-    if (
-      field.type === "checkbox"
-    ) {
-
-      if (
-        !field.checked
-      ) {
-
-        alert(
-          "Please confirm the required declaration."
-        );
-
-
-        field.focus();
-
-
-        return false;
-
-      }
-
-
-      continue;
-
-    }
-
-
-    /* ---------------------------------
-       NORMAL FIELD
-    --------------------------------- */
-
-    if (
-      !String(
-        field.value || ""
-      ).trim()
-    ) {
-
-      alert(
-        "Please complete all required fields."
-      );
-
-
-      field.focus();
-
-
-      return false;
-
-    }
-
-
-    /*
-     * Email / HTML validation
-     */
-
-    if (
-      !field.checkValidity()
-    ) {
-
+  const fields = [...section.querySelectorAll("input,select,textarea")].filter(x=>x.type !== "file");
+  for(const field of fields){
+    if(!field.checkValidity()){
       field.reportValidity();
-
-
+      field.focus({preventScroll:true});
       return false;
-
     }
-
   }
 
-
-  /*
-   * Agreement-specific validation
-   */
-
-  if (
-    step === 4
-  ) {
-
-    const agreementAccepted =
-      document.getElementById(
-        "agreementAccepted"
-      );
-
-
-    if (
-      !agreementAccepted ||
-      !agreementAccepted.checked
-    ) {
-
-      alert(
-        "Please accept the BAASH Vendor Agreement."
-      );
-
-
+  if(step === 4){
+    if(!document.getElementById("agreementAccepted").checked){
+      alert("Please accept the vendor agreement before submitting.");
       return false;
-
     }
-
-
-    const signatureName =
-      document.getElementById(
-        "signatureName"
-      );
-
-
-    if (
-      !signatureName ||
-      !signatureName.value.trim()
-    ) {
-
-      alert(
-        "Please enter the full legal name of the signatory."
-      );
-
-
-      if (signatureName) {
-
-        signatureName.focus();
-
-      }
-
-
+    if(!hasSignature){
+      alert("Please draw your signature before submitting.");
       return false;
-
     }
-
-
-    if (
-      !hasSignature
-    ) {
-
-      alert(
-        "Please draw your digital signature."
-      );
-
-
-      return false;
-
-    }
-
   }
-
-
   return true;
-
 }
 
-
-/* =========================================================
-   FILE UPLOADS
-========================================================= */
-
-function initializeFileUploads() {
-
-  const fileInputs =
-    document.querySelectorAll(
-      '.upload-card input[type="file"]'
-    );
-
-
-  fileInputs.forEach(
-    function (input) {
-
-      input.addEventListener(
-        "change",
-        function () {
-
-          const card =
-            input.closest(
-              ".upload-card"
-            );
-
-
-          if (!card) {
-
-            return;
-
-          }
-
-
-          const fileName =
-            card.querySelector(
-              ".file-name"
-            );
-
-
-          if (!fileName) {
-
-            return;
-
-          }
-
-
-          if (
-            input.files &&
-            input.files.length > 0
-          ) {
-
-            fileName.textContent =
-              input.files[0].name;
-
-          } else {
-
-            fileName.textContent =
-              "Choose file";
-
-          }
-
-        }
-      );
-
-    }
-  );
-
-}
-
-
-/* =========================================================
-   AGREEMENT
-========================================================= */
-
-function populateAgreement() {
-
-  const venueName =
-    getValue(
-      "venueName"
-    );
-
-
-  const legalName =
-    getValue(
-      "legalName"
-    );
-
-
-  const ownerName =
-    getValue(
-      "ownerName"
-    );
-
-
-  const agreementVenue =
-    document.getElementById(
-      "agreementVenue"
-    );
-
-
-  const agreementLegal =
-    document.getElementById(
-      "agreementLegal"
-    );
-
-
-  const agreementOwner =
-    document.getElementById(
-      "agreementOwner"
-    );
-
-
-  if (agreementVenue) {
-
-    agreementVenue.value =
-      venueName || "—";
-
-  }
-
-
-  if (agreementLegal) {
-
-    agreementLegal.value =
-      legalName || "—";
-
-  }
-
-
-  if (agreementOwner) {
-
-    agreementOwner.value =
-      ownerName || "—";
-
-  }
-
-
-  /*
-   * Automatically populate signer name
-   * with legal name first.
-   */
-
-  const signatureName =
-    document.getElementById(
-      "signatureName"
-    );
-
-
-  if (
-    signatureName &&
-    !signatureName.value.trim()
-  ) {
-
-    signatureName.value =
-      legalName ||
-      ownerName ||
-      "";
-
-  }
-
-}
-
-
-/* =========================================================
-   GET VALUE
-========================================================= */
-
-function getValue(
-  id
-) {
-
-  const element =
-    document.getElementById(
-      id
-    );
-
-
-  if (!element) {
-
-    return "";
-
-  }
-
-
-  return String(
-    element.value || ""
-  ).trim();
-
-}
-
-
-/* =========================================================
-   SIGNATURE INITIALIZATION
-========================================================= */
-
-function initializeSignature() {
-
-  if (!canvas) {
-
-    console.error(
-      "Signature canvas not found."
-    );
-
-
-    return;
-
-  }
-
-
-  const ctx =
-    canvas.getContext(
-      "2d"
-    );
-
-
-  ctx.lineWidth =
-    2.5;
-
-
-  ctx.lineCap =
-    "round";
-
-
-  ctx.lineJoin =
-    "round";
-
-
-  /*
-   * Mouse
-   */
-
-  canvas.addEventListener(
-    "mousedown",
-    startSignature
-  );
-
-
-  canvas.addEventListener(
-    "mousemove",
-    drawSignature
-  );
-
-
-  window.addEventListener(
-    "mouseup",
-    stopSignature
-  );
-
-
-  /*
-   * Touch
-   */
-
-  canvas.addEventListener(
-    "touchstart",
-    startSignature,
-    {
-      passive: false
-    }
-  );
-
-
-  canvas.addEventListener(
-    "touchmove",
-    drawSignature,
-    {
-      passive: false
-    }
-  );
-
-
-  canvas.addEventListener(
-    "touchend",
-    stopSignature
-  );
-
-
-  /*
-   * Clear
-   */
-
-  const clearButton =
-    document.getElementById(
-      "clearSignature"
-    );
-
-
-  if (clearButton) {
-
-    clearButton.addEventListener(
-      "click",
-      clearSignature
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   SIGNATURE POSITION
-========================================================= */
-
-function getCanvasPoint(
-  event
-) {
-
-  const rect =
-    canvas.getBoundingClientRect();
-
-
-  let clientX;
-
-  let clientY;
-
-
-  if (
-    event.touches &&
-    event.touches.length > 0
-  ) {
-
-    clientX =
-      event.touches[0].clientX;
-
-
-    clientY =
-      event.touches[0].clientY;
-
-  } else {
-
-    clientX =
-      event.clientX;
-
-
-    clientY =
-      event.clientY;
-
-  }
-
-
-  return {
-
-    x:
-      (
-        clientX -
-        rect.left
-      ) *
-      (
-        canvas.width /
-        rect.width
-      ),
-
-
-    y:
-      (
-        clientY -
-        rect.top
-      ) *
-      (
-        canvas.height /
-        rect.height
-      )
-
-  };
-
-}
-
-
-/* =========================================================
-   START SIGNATURE
-========================================================= */
-
-function startSignature(
-  event
-) {
-
-  event.preventDefault();
-
-
-  drawing = true;
-
-
-  const ctx =
-    canvas.getContext(
-      "2d"
-    );
-
-
-  const point =
-    getCanvasPoint(
-      event
-    );
-
-
-  ctx.beginPath();
-
-
-  ctx.moveTo(
-    point.x,
-    point.y
-  );
-
-}
-
-
-/* =========================================================
-   DRAW SIGNATURE
-========================================================= */
-
-function drawSignature(
-  event
-) {
-
-  if (!drawing) {
-
-    return;
-
-  }
-
-
-  event.preventDefault();
-
-
-  const ctx =
-    canvas.getContext(
-      "2d"
-    );
-
-
-  const point =
-    getCanvasPoint(
-      event
-    );
-
-
-  ctx.lineTo(
-    point.x,
-    point.y
-  );
-
-
-  ctx.stroke();
-
-
-  hasSignature =
-    true;
-
-}
-
-
-/* =========================================================
-   STOP SIGNATURE
-========================================================= */
-
-function stopSignature() {
-
-  drawing = false;
-
-}
-
-
-/* =========================================================
-   CLEAR SIGNATURE
-========================================================= */
-
-function clearSignature() {
-
-  if (!canvas) {
-
-    return;
-
-  }
-
-
-  const ctx =
-    canvas.getContext(
-      "2d"
-    );
-
-
-  ctx.clearRect(
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
-
-
-  hasSignature =
-    false;
-
-}
-
-
-/* =========================================================
-   FORM INITIALIZATION
-========================================================= */
-
-function initializeForm() {
-
-  if (!form) {
-
-    console.error(
-      "Registration form not found."
-    );
-
-
-    return;
-
-  }
-
-
-  form.addEventListener(
-    "submit",
-    handleSubmit
-  );
-
-}
-
-
-/* =========================================================
-   HANDLE SUBMIT
-========================================================= */
-
-async function handleSubmit(
-  event
-) {
-
-  event.preventDefault();
-
-
-  console.log(
-    "Final registration submission started."
-  );
-
-
-  /*
-   * Validate Step 4
-   */
-
-  if (
-    !validateStep(4)
-  ) {
-
-    return;
-
-  }
-
-
-  const submitButton =
-    document.getElementById(
-      "submitBtn"
-    );
-
-
-  if (submitButton) {
-
-    submitButton.disabled =
-      true;
-
-
-    submitButton.textContent =
-      "Submitting...";
-
-  }
-
-
-  try {
-
-    /*
-     * Build payload
-     */
-
-    const payload =
-      await buildPayload();
-
-
-    console.log(
-      "Payload prepared."
-    );
-
-
-    /*
-     * Send to Google Apps Script
-     */
-
-    const response =
-      await fetch(
-        API_URL,
-        {
-          method:
-            "POST",
-
-          headers: {
-
-            "Content-Type":
-              "text/plain;charset=utf-8"
-
-          },
-
-          body:
-            JSON.stringify(
-              payload
-            )
-
-        }
-      );
-
-
-    console.log(
-      "Google Apps Script HTTP status:",
-      response.status
-    );
-
-
-    /*
-     * IMPORTANT:
-     *
-     * Read text first.
-     *
-     * Do NOT directly call response.json().
-     */
-
-    const responseText =
-      await response.text();
-
-
-    console.log(
-      "Google Apps Script raw response:",
-      responseText
-    );
-
-
-    /*
-     * Check empty response
-     */
-
-    if (
-      !responseText
-    ) {
-
-      throw new Error(
-        "Google Apps Script returned an empty response."
-      );
-
-    }
-
-
-    /*
-     * Parse JSON
-     */
-
-    let result;
-
-
-    try {
-
-      result =
-        JSON.parse(
-          responseText
-        );
-
-    } catch (jsonError) {
-
-      console.error(
-        "The server returned non-JSON data:"
-      );
-
-
-      console.error(
-        responseText
-      );
-
-
-      throw new Error(
-        "The BAASH server returned an HTML/error page instead of JSON. Check the Apps Script deployment and Web App URL."
-      );
-
-    }
-
-
-    /*
-     * Server-side failure
-     */
-
-    if (
-      result.success !== true &&
-      result.ok !== true
-    ) {
-
-      throw new Error(
-        result.error ||
-        result.message ||
-        "Registration submission failed."
-      );
-
-    }
-
-
-    /*
-     * SUCCESS
-     */
-
-    showSuccess(
-      result.registrationId
-    );
-
-
-  } catch (error) {
-
-    console.error(
-      "REGISTRATION ERROR:",
-      error
-    );
-
-
-    alert(
-      error.message ||
-      "Unable to submit registration."
-    );
-
-
-    if (submitButton) {
-
-      submitButton.disabled =
-        false;
-
-
-      submitButton.textContent =
-        "Submit Registration";
-
-    }
-
-  }
-
-}
-
-
-/* =========================================================
-   BUILD PAYLOAD
-========================================================= */
-
-async function buildPayload() {
-
-  const payload = {};
-
-
-  /*
-   * Normal form fields
-   */
-
-  const normalFields = [
-
-    "venueName",
-
-    "natureOfBusiness",
-
-    "venueAddress",
-
-    "city",
-
-    "state",
-
-    "pinCode",
-
-    "legalName",
-
-    "ownerName",
-
-    "ownerEmail",
-
-    "ownerMobile",
-
-    "gstNumber",
-
-    "panNumber"
-
-  ];
-
-
-  normalFields.forEach(
-    function(name) {
-
-      const element =
-        form.elements[name];
-
-
-      if (element) {
-
-        payload[name] =
-          String(
-            element.value || ""
-          ).trim();
-
-      }
-
-    }
-  );
-
-
-  /*
-   * Documents
-   */
-
-  payload.files =
-    await collectFiles();
-
-
-  /*
-   * Agreement
-   */
-
-  const signatureName =
-    document.getElementById(
-      "signatureName"
-    );
-
-
-  const agreementAccepted =
-    document.getElementById(
-      "agreementAccepted"
-    );
-
-
-  payload.contract = {
-
-    accepted:
-      agreementAccepted
-        ? agreementAccepted.checked
-        : false,
-
-    version:
-      "DEMO-1.0",
-
-    signerName:
-      signatureName
-        ? signatureName.value.trim()
-        : "",
-
-    signatureDataUrl:
-      canvas
-        ? canvas.toDataURL(
-            "image/png"
-          )
-        : ""
-
-  };
-
-
-  return payload;
-
-}
-
-
-/* =========================================================
-   COLLECT DOCUMENTS
-========================================================= */
-
-async function collectFiles() {
-
-  const fileNames = [
-
-    "tradeLicense",
-
-    "gstCertificate",
-
-    "ownerAadhaar",
-
-    "businessPan",
-
-    "cancelledCheque",
-
-    "otherLicense"
-
-  ];
-
-
-  const files = {};
-
-
-  for (
-    const name
-    of fileNames
-  ) {
-
-    const input =
-      form.elements[name];
-
-
-    if (
-      input &&
-      input.files &&
-      input.files.length > 0
-    ) {
-
-      files[name] =
-        await fileToBase64(
-          input.files[0]
-        );
-
-    } else {
-
-      files[name] =
-        null;
-
-    }
-
-  }
-
-
-  return files;
-
-}
-
-
-/* =========================================================
-   FILE TO BASE64
-========================================================= */
-
-async function fileToBase64(
-  file
-) {
-
-  if (!file) {
-
-    return null;
-
-  }
-
-
-  /*
-   * Maximum 10 MB
-   */
-
-  if (
-    file.size >
-    10 * 1024 * 1024
-  ) {
-
-    throw new Error(
-      "File " +
-      file.name +
-      " is larger than 10 MB."
-    );
-
-  }
-
-
-  const arrayBuffer =
-    await file.arrayBuffer();
-
-
-  const bytes =
-    new Uint8Array(
-      arrayBuffer
-    );
-
-
-  let binary =
-    "";
-
-
-  const chunkSize =
-    0x8000;
-
-
-  for (
-    let i = 0;
-    i < bytes.length;
-    i += chunkSize
-  ) {
-
-    const chunk =
-      bytes.subarray(
-        i,
-        Math.min(
-          i + chunkSize,
-          bytes.length
-        )
-      );
-
-
-    binary +=
-      String.fromCharCode(
-        ...chunk
-      );
-
-  }
-
-
-  return {
-
-    name:
-      file.name,
-
-    type:
-      file.type ||
-      "application/octet-stream",
-
-    data:
-      btoa(
-        binary
-      )
-
-  };
-
-}
-
-
-/* =========================================================
-   SUCCESS SCREEN
-========================================================= */
-
-function showSuccess(
-  registrationId
-) {
-
-  /*
-   * Hide form
-   */
-
-  if (form) {
-
-    form.style.display =
-      "none";
-
-  }
-
-
-  /*
-   * Hide progress
-   */
-
-  const progress =
-    document.querySelector(
-      ".progress"
-    );
-
-
-  if (progress) {
-
-    progress.style.display =
-      "none";
-
-  }
-
-
-  /*
-   * Hide intro
-   */
-
-  const intro =
-    document.querySelector(
-      ".intro"
-    );
-
-
-  if (intro) {
-
-    intro.style.display =
-      "none";
-
-  }
-
-
-  /*
-   * Registration ID
-   */
-
-  const idElement =
-    document.getElementById(
-      "registrationId"
-    );
-
-
-  if (idElement) {
-
-    idElement.textContent =
-      registrationId ||
-      generateFallbackId();
-
-  }
-
-
-  /*
-   * Show success
-   */
-
-  const successBox =
-    document.getElementById(
-      "successBox"
-    );
-
-
-  if (successBox) {
-
-    successBox.classList.add(
-      "show"
-    );
-
-  }
-
-
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
+function showStep(step){
+  currentStep = step;
+  document.querySelectorAll(".form-step").forEach(x=>x.classList.toggle("active", +x.dataset.step === step));
+  document.querySelectorAll(".progress-item").forEach(x=>{
+    const n = +x.dataset.step;
+    x.classList.toggle("active", n === step);
+    x.classList.toggle("done", n < step);
   });
-
+  document.getElementById("stepNumber").textContent = step;
+  if(step === 4) populateAgreement();
+  window.scrollTo({top:0,behavior:"smooth"});
 }
 
+document.querySelectorAll(".next").forEach(btn=>btn.addEventListener("click",()=>{
+  if(validateStep(currentStep)) showStep(Math.min(4,currentStep+1));
+}));
+document.querySelectorAll(".back").forEach(btn=>btn.addEventListener("click",()=>showStep(Math.max(1,currentStep-1))));
 
-/* =========================================================
-   FALLBACK REGISTRATION ID
-========================================================= */
+/* ---------- State / city API ---------- */
+async function loadStates(){
+  stateSelect.innerHTML = '<option value="">Loading states…</option>';
+  stateSelect.disabled = true;
+  try{
+    const response = await fetch(`${LOCATION_API}/countries/states`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({country:"India"})
+    });
+    const result = await response.json();
+    if(result.error) throw new Error(result.msg || "Unable to load states");
+    const states = result.data?.states || [];
+    stateSelect.innerHTML = '<option value="">Select state</option>';
+    states.sort((a,b)=>a.name.localeCompare(b.name)).forEach(item=>{
+      const option = document.createElement("option");
+      option.value = item.name;
+      option.textContent = item.name;
+      stateSelect.appendChild(option);
+    });
+    stateSelect.disabled = false;
+    document.getElementById("stateStatus").textContent = `${states.length} states available.`;
+  }catch(error){
+    console.error(error);
+    stateSelect.innerHTML = '<option value="">Unable to load states</option>';
+    document.getElementById("stateStatus").textContent = "Please refresh the page and try again.";
+  }
+}
 
-function generateFallbackId() {
+async function loadCities(state){
+  citySelect.innerHTML = '<option value="">Loading cities…</option>';
+  citySelect.disabled = true;
+  document.getElementById("cityStatus").textContent = "Loading cities…";
+  if(!state){
+    citySelect.innerHTML = '<option value="">Select state first</option>';
+    document.getElementById("cityStatus").textContent = "Select a state to load cities.";
+    return;
+  }
+  try{
+    const response = await fetch(`${LOCATION_API}/countries/state/cities`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({country:"India",state})
+    });
+    const result = await response.json();
+    if(result.error) throw new Error(result.msg || "Unable to load cities");
+    const cities = (result.data || []).filter(Boolean).sort((a,b)=>a.localeCompare(b));
+    citySelect.innerHTML = '<option value="">Select city</option>';
+    cities.forEach(city=>{
+      const option = document.createElement("option");
+      option.value = city;
+      option.textContent = city;
+      citySelect.appendChild(option);
+    });
+    citySelect.disabled = false;
+    document.getElementById("cityStatus").textContent = `${cities.length} cities available.`;
+  }catch(error){
+    console.error(error);
+    citySelect.innerHTML = '<option value="">Unable to load cities</option>';
+    document.getElementById("cityStatus").textContent = "Could not load cities. Please refresh and try again.";
+  }
+}
 
-  const date =
-    new Date();
+stateSelect.addEventListener("change",()=>loadCities(stateSelect.value));
+loadStates();
 
+/* ---------- Upload UI ---------- */
+document.querySelectorAll('.upload-card input[type="file"]').forEach(input=>{
+  input.addEventListener("change",()=>{
+    const card = input.closest(".upload-card");
+    const name = card.querySelector(".file-name");
+    if(input.files.length){
+      if(input.files[0].size > 10 * 1024 * 1024){
+        alert("Each document must be 10 MB or smaller.");
+        input.value = "";
+        name.textContent = "Choose file";
+        card.classList.remove("has-file");
+        return;
+      }
+      name.textContent = input.files[0].name;
+      card.classList.add("has-file");
+    }else{
+      name.textContent = "Choose file";
+      card.classList.remove("has-file");
+    }
+  });
+});
 
-  const pad =
-    function(number) {
+/* ---------- Agreement ---------- */
+function populateAgreement(){
+  document.getElementById("agreementVenue").textContent = form.elements.venueName.value || "—";
+  document.getElementById("agreementLegal").textContent = form.elements.legalName.value || "—";
+  document.getElementById("agreementOwner").textContent = form.elements.ownerName.value || "—";
+  const signatureName = document.getElementById("signatureName");
+  if(!signatureName.value) signatureName.value = form.elements.legalName.value || form.elements.ownerName.value || "";
+}
 
-      return String(
-        number
-      ).padStart(
-        2,
-        "0"
-      );
+/* ---------- Signature ---------- */
+ctx.lineWidth = 2.5;
+ctx.lineCap = "round";
+ctx.lineJoin = "round";
 
+function getCanvasPoint(event){
+  const rect = canvas.getBoundingClientRect();
+  const touch = event.touches && event.touches.length ? event.touches[0] : event;
+  return {x:(touch.clientX-rect.left)*(canvas.width/rect.width),y:(touch.clientY-rect.top)*(canvas.height/rect.height)};
+}
+function startSignature(event){
+  event.preventDefault(); drawing=true; const p=getCanvasPoint(event); ctx.beginPath(); ctx.moveTo(p.x,p.y);
+}
+function drawSignature(event){
+  if(!drawing) return; event.preventDefault(); const p=getCanvasPoint(event); ctx.lineTo(p.x,p.y); ctx.stroke(); hasSignature=true;
+}
+function stopSignature(){drawing=false;}
+canvas.addEventListener("mousedown",startSignature); canvas.addEventListener("mousemove",drawSignature); window.addEventListener("mouseup",stopSignature);
+canvas.addEventListener("touchstart",startSignature,{passive:false}); canvas.addEventListener("touchmove",drawSignature,{passive:false}); canvas.addEventListener("touchend",stopSignature);
+document.getElementById("clearSignature").addEventListener("click",()=>{ctx.clearRect(0,0,canvas.width,canvas.height);hasSignature=false;});
+
+/* ---------- Files / submission ---------- */
+async function fileToBase64(file){
+  if(!file) return null;
+  const bytes = await file.arrayBuffer();
+  let binary = "";
+  const chunkSize = 0x8000;
+  for(let i=0;i<bytes.byteLength;i+=chunkSize){
+    binary += String.fromCharCode(...new Uint8Array(bytes,i,Math.min(chunkSize,bytes.byteLength-i)));
+  }
+  return {name:file.name,type:file.type||"application/octet-stream",data:btoa(binary)};
+}
+async function collectFiles(){
+  const names=["tradeLicense","gstCertificate","ownerAadhaar","businessPan","cancelledCheque","otherLicense"];
+  const files={};
+  for(const name of names){const input=form.elements[name];files[name]=await fileToBase64(input?.files?.[0]||null);}
+  return files;
+}
+
+function showProcessing(){
+  const panel=document.getElementById("processingPanel");
+  panel.classList.add("show"); panel.setAttribute("aria-hidden","false");
+  let step=1;
+  document.querySelectorAll(".processing-step").forEach(x=>x.classList.remove("active","done"));
+  document.querySelector('.processing-step[data-process="1"]').classList.add("active");
+  processTimer=setInterval(()=>{
+    if(step>=4) return;
+    document.querySelector(`.processing-step[data-process="${step}"]`).classList.remove("active");
+    document.querySelector(`.processing-step[data-process="${step}"]`).classList.add("done");
+    step++;
+    document.querySelector(`.processing-step[data-process="${step}"]`).classList.add("active");
+  },1800);
+}
+function hideProcessing(){
+  if(processTimer) clearInterval(processTimer);
+  const panel=document.getElementById("processingPanel");
+  panel.classList.remove("show"); panel.setAttribute("aria-hidden","true");
+}
+
+form.addEventListener("submit",async event=>{
+  event.preventDefault();
+  if(!validateStep(4)) return;
+  const submit=document.getElementById("submitBtn");
+  submit.disabled=true;
+  showProcessing();
+  try{
+    const payload={};
+    const formData=new FormData(form);
+    for(const [key,value] of formData.entries()) if(!(value instanceof File)) payload[key]=value;
+    payload.files=await collectFiles();
+    payload.contract={
+      accepted:true,
+      version:"DEMO-1.0",
+      signerName:document.getElementById("signatureName").value.trim(),
+      signatureDataUrl:canvas.toDataURL("image/png")
     };
+    const response=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)});
+    const text=await response.text();
+    let result;
+    try{result=JSON.parse(text);}catch{throw new Error("The registration server returned an unexpected response. Please try again.");}
+    if(!result.success && !result.ok) throw new Error(result.error || "Submission failed");
+    hideProcessing();
+    showSuccess(result.registrationId);
+  }catch(error){
+    console.error(error);
+    hideProcessing();
+    submit.disabled=false;
+    alert(error.message || "Unable to submit registration right now. Please try again.");
+  }
+});
 
-
-  return (
-
-    "BAASH-VEN-" +
-
-    date.getFullYear() +
-
-    pad(
-      date.getMonth() + 1
-    ) +
-
-    pad(
-      date.getDate()
-    ) +
-
-    "-" +
-
-    Math.floor(
-      1000 +
-      Math.random() *
-      9000
-    )
-
-  );
-
+function showSuccess(id){
+  form.style.display="none";
+  document.querySelector(".progress").style.display="none";
+  document.querySelector(".intro").style.display="none";
+  document.getElementById("registrationId").textContent=id||generateId();
+  document.getElementById("successBox").classList.add("show");
+  window.scrollTo({top:0,behavior:"smooth"});
 }
+function generateId(){
+  const d=new Date(); const pad=n=>String(n).padStart(2,"0");
+  return `BAASH-VEN-${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${Math.floor(1000+Math.random()*9000)}`;
+}
+
+setCustomMessages();
