@@ -1,15 +1,35 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbxCttSaWEs7dsnd-vusjdLvyPyqerUGst00W9qcYS5NvC38yEtprGT8pXc2JGohOEo/exec";
+/* =========================================================
+   BAASH REGISTRATION FRONTEND
+========================================================= */
+
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbxCttSaWEs7dsnd-vusjdLvyPyqerUGst00W9qcYS5NvC38yEtprGT8pXc2JGohOEo/exec";
+
 
 let currentStep = 1;
-const form = document.getElementById("registrationForm");
 
-const formSteps = Array.from(
-  document.querySelectorAll(".form-step")
-);
+let hasSignature = false;
 
-const progressItems = Array.from(
-  document.querySelectorAll(".progress-item")
-);
+const form =
+  document.getElementById(
+    "registrationForm"
+  );
+
+
+const formSteps =
+  Array.from(
+    document.querySelectorAll(
+      ".form-step"
+    )
+  );
+
+
+const progressItems =
+  Array.from(
+    document.querySelectorAll(
+      ".progress-item"
+    )
+  );
 
 
 /* =========================================================
@@ -18,30 +38,45 @@ const progressItems = Array.from(
 
 function showStep(step) {
 
-  if (step < 1 || step > formSteps.length) {
+  if (
+    step < 1 ||
+    step > formSteps.length
+  ) {
     return;
   }
 
+
   currentStep = step;
 
+
   formSteps.forEach(section => {
-    const sectionStep = Number(section.dataset.step);
+
+    const sectionStep =
+      Number(
+        section.dataset.step
+      );
 
     section.classList.toggle(
       "active",
       sectionStep === step
     );
+
   });
+
 
   progressItems.forEach(item => {
 
     const itemStep =
-      Number(item.dataset.step);
+      Number(
+        item.dataset.step
+      );
+
 
     item.classList.toggle(
       "active",
       itemStep === step
     );
+
 
     item.classList.toggle(
       "done",
@@ -50,26 +85,38 @@ function showStep(step) {
 
   });
 
+
   const stepNumber =
-    document.getElementById("stepNumber");
+    document.getElementById(
+      "stepNumber"
+    );
+
 
   if (stepNumber) {
-    stepNumber.textContent = step;
+
+    stepNumber.textContent =
+      step;
+
   }
 
+
   if (step === 4) {
+
     populateAgreement();
+
   }
+
 
   window.scrollTo({
     top: 0,
     behavior: "smooth"
   });
+
 }
 
 
 /* =========================================================
-   VALIDATION
+   VALIDATE CURRENT STEP
 ========================================================= */
 
 function validateStep(step) {
@@ -79,14 +126,14 @@ function validateStep(step) {
       `.form-step[data-step="${step}"]`
     );
 
+
   if (!section) {
+
     return false;
+
   }
 
-  /*
-   * Validate only the fields that belong
-   * to the current section.
-   */
+
   const requiredFields =
     Array.from(
       section.querySelectorAll(
@@ -94,22 +141,37 @@ function validateStep(step) {
       )
     );
 
-  for (const field of requiredFields) {
 
-    /*
-     * File inputs are handled separately.
-     */
-    if (field.type === "file") {
+  for (
+    const field
+    of requiredFields
+  ) {
 
-      if (!field.files || !field.files.length) {
+
+    /* FILE */
+
+    if (
+      field.type === "file"
+    ) {
+
+      if (
+        !field.files ||
+        !field.files.length
+      ) {
 
         const card =
-          field.closest(".upload-card");
+          field.closest(
+            ".upload-card"
+          );
+
 
         const title =
           card
-            ? card.querySelector("strong")
+            ? card.querySelector(
+                "strong"
+              )
             : null;
+
 
         alert(
           "Please upload " +
@@ -120,40 +182,88 @@ function validateStep(step) {
           )
         );
 
+
         return false;
+
       }
 
-      /*
-       * 10 MB limit.
-       */
-      if (field.files[0].size > 10 * 1024 * 1024) {
+
+      if (
+        field.files[0].size >
+        10 * 1024 * 1024
+      ) {
 
         alert(
           "Each document must be less than 10 MB."
         );
 
+
         return false;
+
       }
 
+
       continue;
+
     }
 
-    /*
-     * Normal fields.
-     */
-    if (!field.checkValidity()) {
+
+    /* CHECKBOX */
+
+    if (
+      field.type === "checkbox"
+    ) {
+
+      if (!field.checked) {
+
+        field.focus();
+
+        alert(
+          "Please confirm the required declaration."
+        );
+
+        return false;
+
+      }
+
+
+      continue;
+
+    }
+
+
+    /* NORMAL INPUT */
+
+    if (
+      !field.value.trim()
+    ) {
+
+      field.focus();
+
+      alert(
+        "Please complete all required fields."
+      );
+
+      return false;
+
+    }
+
+
+    if (
+      !field.checkValidity()
+    ) {
 
       field.reportValidity();
 
       return false;
+
     }
 
   }
 
 
-  /*
-   * Agreement-specific validation.
-   */
+  /* AGREEMENT */
+
   if (step === 4) {
 
     const accepted =
@@ -161,13 +271,18 @@ function validateStep(step) {
         "agreementAccepted"
       );
 
-    if (!accepted || !accepted.checked) {
+
+    if (
+      !accepted ||
+      !accepted.checked
+    ) {
 
       alert(
-        "Please accept the demo vendor agreement."
+        "Please accept the BAASH Vendor Agreement."
       );
 
       return false;
+
     }
 
 
@@ -176,54 +291,68 @@ function validateStep(step) {
         "signatureName"
       );
 
+
     if (
       !signatureName ||
       !signatureName.value.trim()
     ) {
 
       alert(
-        "Please enter your full legal name."
+        "Please enter the full legal name of the signatory."
       );
 
-      if (signatureName) {
-        signatureName.focus();
-      }
+      signatureName.focus();
 
       return false;
+
     }
 
 
     if (!hasSignature) {
 
       alert(
-        "Please draw your signature."
+        "Please draw your digital signature."
       );
 
       return false;
+
     }
 
   }
 
+
   return true;
+
 }
 
 
 /* =========================================================
-   NEXT / BACK
+   NEXT
 ========================================================= */
 
 function nextStep() {
 
   console.log(
-    "Next clicked. Current step:",
+    "Continue clicked. Step:",
     currentStep
   );
 
-  if (!validateStep(currentStep)) {
+
+  if (
+    !validateStep(
+      currentStep
+    )
+  ) {
+
     return;
+
   }
 
-  if (currentStep < formSteps.length) {
+
+  if (
+    currentStep <
+    formSteps.length
+  ) {
 
     showStep(
       currentStep + 1
@@ -234,9 +363,15 @@ function nextStep() {
 }
 
 
+/* =========================================================
+   BACK
+========================================================= */
+
 function prevStep() {
 
-  if (currentStep > 1) {
+  if (
+    currentStep > 1
+  ) {
 
     showStep(
       currentStep - 1
@@ -247,46 +382,52 @@ function prevStep() {
 }
 
 
-/*
- * Explicitly attach navigation events.
- *
- * This avoids depending on inline onclick
- * handlers and makes navigation reliable.
- */
-document.querySelectorAll(".next").forEach(button => {
+/* =========================================================
+   BUTTON EVENTS
+========================================================= */
 
-  button.addEventListener(
-    "click",
-    function(event) {
+document
+  .querySelectorAll(
+    ".next"
+  )
+  .forEach(button => {
 
-      event.preventDefault();
+    button.addEventListener(
+      "click",
+      function(event) {
 
-      nextStep();
+        event.preventDefault();
 
-    }
-  );
+        nextStep();
 
-});
+      }
+    );
+
+  });
 
 
-document.querySelectorAll(".prev").forEach(button => {
+document
+  .querySelectorAll(
+    ".prev"
+  )
+  .forEach(button => {
 
-  button.addEventListener(
-    "click",
-    function(event) {
+    button.addEventListener(
+      "click",
+      function(event) {
 
-      event.preventDefault();
+        event.preventDefault();
 
-      prevStep();
+        prevStep();
 
-    }
-  );
+      }
+    );
 
-});
+  });
 
 
 /* =========================================================
-   FILE UPLOAD DISPLAY
+   FILE NAME DISPLAY
 ========================================================= */
 
 document
@@ -300,23 +441,41 @@ document
       function() {
 
         const card =
-          input.closest(".upload-card");
+          input.closest(
+            ".upload-card"
+          );
+
 
         if (!card) {
           return;
         }
 
+
         const fileName =
-          card.querySelector(".file-name");
+          card.querySelector(
+            ".file-name"
+          );
+
 
         if (!fileName) {
           return;
         }
 
-        fileName.textContent =
-          input.files && input.files.length
-            ? input.files[0].name
-            : "Choose file";
+
+        if (
+          input.files &&
+          input.files.length
+        ) {
+
+          fileName.textContent =
+            input.files[0].name;
+
+        } else {
+
+          fileName.textContent =
+            "Choose file";
+
+        }
 
       }
     );
@@ -325,57 +484,45 @@ document
 
 
 /* =========================================================
-   AGREEMENT
+   AGREEMENT DATA
 ========================================================= */
 
 function populateAgreement() {
 
   const venue =
-    form.elements.venueName
-      ? form.elements.venueName.value
-      : "";
+    document.getElementById(
+      "venueName"
+    ).value.trim();
+
 
   const legal =
-    form.elements.legalName
-      ? form.elements.legalName.value
-      : "";
+    document.getElementById(
+      "legalName"
+    ).value.trim();
+
 
   const owner =
-    form.elements.ownerName
-      ? form.elements.ownerName.value
-      : "";
-
-
-  const venueElement =
     document.getElementById(
-      "agreementVenue"
-    );
-
-  const legalElement =
-    document.getElementById(
-      "agreementLegal"
-    );
-
-  const ownerElement =
-    document.getElementById(
-      "agreementOwner"
-    );
+      "ownerName"
+    ).value.trim();
 
 
-  if (venueElement) {
-    venueElement.textContent =
-      venue || "—";
-  }
+  document.getElementById(
+    "agreementVenue"
+  ).value =
+    venue || "—";
 
-  if (legalElement) {
-    legalElement.textContent =
-      legal || "—";
-  }
 
-  if (ownerElement) {
-    ownerElement.textContent =
-      owner || "—";
-  }
+  document.getElementById(
+    "agreementLegal"
+  ).value =
+    legal || "—";
+
+
+  document.getElementById(
+    "agreementOwner"
+  ).value =
+    owner || "—";
 
 
   const signatureName =
@@ -408,18 +555,28 @@ const canvas =
     "signaturePad"
   );
 
+
 const ctx =
-  canvas.getContext("2d");
+  canvas.getContext(
+    "2d"
+  );
 
 
 ctx.lineWidth = 2.5;
-ctx.lineCap = "round";
-ctx.lineJoin = "round";
+
+ctx.lineCap =
+  "round";
+
+ctx.lineJoin =
+  "round";
 
 
 let drawing = false;
-let hasSignature = false;
 
+
+/* =========================================================
+   SIGNATURE POSITION
+========================================================= */
 
 function getCanvasPoint(event) {
 
@@ -428,6 +585,7 @@ function getCanvasPoint(event) {
 
 
   let clientX;
+
   let clientY;
 
 
@@ -457,16 +615,26 @@ function getCanvasPoint(event) {
 
     x:
       (clientX - rect.left) *
-      (canvas.width / rect.width),
+      (
+        canvas.width /
+        rect.width
+      ),
 
     y:
       (clientY - rect.top) *
-      (canvas.height / rect.height)
+      (
+        canvas.height /
+        rect.height
+      )
 
   };
 
 }
 
+
+/* =========================================================
+   START SIGNATURE
+========================================================= */
 
 function startSignature(event) {
 
@@ -474,8 +642,12 @@ function startSignature(event) {
 
   drawing = true;
 
+
   const point =
-    getCanvasPoint(event);
+    getCanvasPoint(
+      event
+    );
+
 
   ctx.beginPath();
 
@@ -487,28 +659,43 @@ function startSignature(event) {
 }
 
 
+/* =========================================================
+   DRAW
+========================================================= */
+
 function drawSignature(event) {
 
   if (!drawing) {
     return;
   }
 
+
   event.preventDefault();
 
+
   const point =
-    getCanvasPoint(event);
+    getCanvasPoint(
+      event
+    );
+
 
   ctx.lineTo(
     point.x,
     point.y
   );
 
+
   ctx.stroke();
+
 
   hasSignature = true;
 
 }
 
+
+/* =========================================================
+   STOP
+========================================================= */
 
 function stopSignature() {
 
@@ -517,15 +704,21 @@ function stopSignature() {
 }
 
 
+/* =========================================================
+   MOUSE EVENTS
+========================================================= */
+
 canvas.addEventListener(
   "mousedown",
   startSignature
 );
 
+
 canvas.addEventListener(
   "mousemove",
   drawSignature
 );
+
 
 window.addEventListener(
   "mouseup",
@@ -533,23 +726,37 @@ window.addEventListener(
 );
 
 
+/* =========================================================
+   TOUCH EVENTS
+========================================================= */
+
 canvas.addEventListener(
   "touchstart",
   startSignature,
-  { passive: false }
+  {
+    passive: false
+  }
 );
+
 
 canvas.addEventListener(
   "touchmove",
   drawSignature,
-  { passive: false }
+  {
+    passive: false
+  }
 );
+
 
 canvas.addEventListener(
   "touchend",
   stopSignature
 );
 
+
+/* =========================================================
+   CLEAR SIGNATURE
+========================================================= */
 
 document
   .getElementById(
@@ -566,6 +773,7 @@ document
         canvas.height
       );
 
+
       hasSignature = false;
 
     }
@@ -579,15 +787,21 @@ document
 async function fileToBase64(file) {
 
   if (!file) {
+
     return null;
+
   }
+
 
   const bytes =
     await file.arrayBuffer();
 
+
   let binary = "";
 
-  const chunkSize = 0x8000;
+
+  const chunkSize =
+    0x8000;
 
 
   for (
@@ -596,29 +810,36 @@ async function fileToBase64(file) {
     i += chunkSize
   ) {
 
-    binary += String.fromCharCode(
-      ...new Uint8Array(
+    const chunk =
+      new Uint8Array(
         bytes,
         i,
         Math.min(
           chunkSize,
           bytes.byteLength - i
         )
-      )
-    );
+      );
+
+
+    binary +=
+      String.fromCharCode(
+        ...chunk
+      );
 
   }
 
 
   return {
 
-    name: file.name,
+    name:
+      file.name,
 
     type:
       file.type ||
       "application/octet-stream",
 
-    data: btoa(binary)
+    data:
+      btoa(binary)
 
   };
 
@@ -626,7 +847,7 @@ async function fileToBase64(file) {
 
 
 /* =========================================================
-   COLLECT FILES
+   COLLECT DOCUMENTS
 ========================================================= */
 
 async function collectFiles() {
@@ -634,10 +855,15 @@ async function collectFiles() {
   const names = [
 
     "tradeLicense",
+
     "gstCertificate",
+
     "ownerAadhaar",
+
     "businessPan",
+
     "cancelledCheque",
+
     "otherLicense"
 
   ];
@@ -646,18 +872,24 @@ async function collectFiles() {
   const files = {};
 
 
-  for (const name of names) {
+  for (
+    const name
+    of names
+  ) {
 
     const input =
       form.elements[name];
 
+
     files[name] =
       await fileToBase64(
+
         input &&
         input.files &&
         input.files.length
           ? input.files[0]
           : null
+
       );
 
   }
@@ -679,8 +911,12 @@ form.addEventListener(
     event.preventDefault();
 
 
-    if (!validateStep(4)) {
+    if (
+      !validateStep(4)
+    ) {
+
       return;
+
     }
 
 
@@ -690,7 +926,9 @@ form.addEventListener(
       );
 
 
-    submitButton.disabled = true;
+    submitButton.disabled =
+      true;
+
 
     submitButton.textContent =
       "Submitting...";
@@ -698,24 +936,11 @@ form.addEventListener(
 
     try {
 
-      if (
-        API_URL.includes(
-          "PASTE_YOUR"
-        )
-      ) {
-
-        throw new Error(
-          "Please configure the Google Apps Script URL in script.js first."
-        );
-
-      }
+      const formData =
+        new FormData(form);
 
 
       const payload = {};
-
-
-      const formData =
-        new FormData(form);
 
 
       for (
@@ -735,15 +960,20 @@ form.addEventListener(
       }
 
 
+      /* DOCUMENTS */
+
       payload.files =
         await collectFiles();
 
+
+      /* CONTRACT */
 
       payload.contract = {
 
         accepted: true,
 
-        version: "DEMO-1.0",
+        version:
+          "DEMO-1.0",
 
         signerName:
           document
@@ -761,29 +991,24 @@ form.addEventListener(
       };
 
 
+      /* SEND TO APPS SCRIPT */
+
       const response =
         await fetch(
-
           API_URL,
-
           {
-
             method: "POST",
 
             headers: {
-
               "Content-Type":
                 "text/plain;charset=utf-8"
-
             },
 
             body:
               JSON.stringify(
                 payload
               )
-
           }
-
         );
 
 
@@ -798,7 +1023,7 @@ form.addEventListener(
 
         throw new Error(
           result.error ||
-          "Submission failed."
+          "Registration submission failed."
         );
 
       }
@@ -811,15 +1036,20 @@ form.addEventListener(
 
     } catch (error) {
 
-      console.error(error);
+      console.error(
+        error
+      );
+
 
       alert(
         error.message ||
         "Unable to submit registration."
       );
 
+
       submitButton.disabled =
         false;
+
 
       submitButton.textContent =
         "Submit Registration";
@@ -831,7 +1061,7 @@ form.addEventListener(
 
 
 /* =========================================================
-   SUCCESS
+   SUCCESS SCREEN
 ========================================================= */
 
 function showSuccess(
@@ -847,9 +1077,12 @@ function showSuccess(
       ".progress"
     );
 
+
   if (progress) {
+
     progress.style.display =
       "none";
+
   }
 
 
@@ -858,51 +1091,50 @@ function showSuccess(
       ".intro"
     );
 
+
   if (intro) {
+
     intro.style.display =
       "none";
-  }
-
-
-  const idElement =
-    document.getElementById(
-      "registrationId"
-    );
-
-  if (idElement) {
-
-    idElement.textContent =
-      registrationId ||
-      generateId();
 
   }
 
 
-  const successBox =
-    document.getElementById(
+  document.getElementById(
+    "registrationId"
+  ).textContent =
+    registrationId ||
+    generateFallbackId();
+
+
+  document
+    .getElementById(
       "successBox"
-    );
-
-  if (successBox) {
-
-    successBox.classList.add(
+    )
+    .classList.add(
       "show"
     );
-
-  }
 
 }
 
 
-function generateId() {
+/* =========================================================
+   FALLBACK ID
+========================================================= */
+
+function generateFallbackId() {
 
   const date =
     new Date();
 
+
   const pad =
     number =>
       String(number)
-        .padStart(2, "0");
+        .padStart(
+          2,
+          "0"
+        );
 
 
   return (
@@ -911,9 +1143,13 @@ function generateId() {
 
     date.getFullYear() +
 
-    pad(date.getMonth() + 1) +
+    pad(
+      date.getMonth() + 1
+    ) +
 
-    pad(date.getDate()) +
+    pad(
+      date.getDate()
+    ) +
 
     "-" +
 
@@ -928,7 +1164,7 @@ function generateId() {
 
 
 /* =========================================================
-   INITIAL STATE
+   START
 ========================================================= */
 
 showStep(1);

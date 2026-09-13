@@ -1,17 +1,865 @@
-*{box-sizing:border-box}body{margin:0;background:#08080b;color:#f4f3f7;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.page{min-height:100vh}.topbar{height:76px;border-bottom:1px solid #202027;background:#0b0b0f;display:flex;align-items:center;justify-content:space-between;padding:0 5%;position:sticky;top:0;z-index:10}.brand{display:flex;align-items:center;gap:11px}.brand-mark{width:38px;height:38px;border-radius:11px;background:linear-gradient(145deg,#8d48ff,#4d1ca4);display:grid;place-items:center;font-size:21px;font-weight:800}.brand-name{font-weight:800;letter-spacing:2px}.brand-sub{font-size:11px;color:#77747f;margin-top:1px}.secure{font-size:12px;color:#9996a2}.container{max-width:1050px;margin:auto;padding:48px 24px 35px}.intro{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:35px}.eyebrow{font-size:11px;letter-spacing:1.8px;color:#a765ff;font-weight:800;margin-bottom:8px}h1{font-size:36px;margin:0 0 8px;letter-spacing:-1px}p{color:#92909a;margin:0;line-height:1.6}.step-badge{border:1px solid #2a2931;border-radius:10px;padding:10px 14px;color:#aaa7b1;font-size:13px}.step-badge span{color:#fff;font-weight:700}.progress{display:flex;align-items:center;margin-bottom:30px}.progress-item{display:flex;align-items:center;gap:9px;color:#686570;font-size:12px;white-space:nowrap}.progress-item span{width:30px;height:30px;border:1px solid #303039;border-radius:50%;display:grid;place-items:center}.progress-item.active{color:#eae8ef}.progress-item.active span{background:#7435c7;border-color:#8c4be8;color:white}.progress-item.done span{background:#33204d;border-color:#7c40c8;color:#d9baff}.line{height:1px;background:#27262e;flex:1;margin:0 15px}.form-step{display:none;background:#101015;border:1px solid #24232b;border-radius:16px;padding:30px;box-shadow:0 18px 50px #0005}.form-step.active{display:block}.section-title{margin-bottom:28px}.section-title h2{margin:0 0 6px;font-size:20px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}.field.full{grid-column:1/-1}.field label{display:block;font-size:12px;font-weight:600;color:#c6c3cc;margin-bottom:8px}.field b,.upload-card b{color:#b36aff}.field input,.field select,.field textarea{width:100%;background:#0b0b0f;border:1px solid #302f38;color:#eee;border-radius:9px;padding:13px 14px;outline:none;font-size:14px;transition:.2s}.field textarea{min-height:105px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{border-color:#8143d0;box-shadow:0 0 0 3px #7435c720}.field select{appearance:auto}.actions{display:flex;justify-content:flex-end;gap:12px;margin-top:30px;padding-top:22px;border-top:1px solid #24232b}.btn{border:0;border-radius:9px;padding:12px 20px;font-weight:700;font-size:13px;cursor:pointer}.btn.primary{background:#7838cf;color:white}.btn.primary:hover{background:#8a48e1}.btn.secondary{background:#1a191f;color:#c7c4cc;border:1px solid #302f38}.upload-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}.upload-card{min-height:150px;border:1px dashed #3b3945;border-radius:12px;background:#0c0c11;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;transition:.2s}.upload-card:hover{border-color:#8447d4;background:#121019}.upload-card input{display:none}.upload-icon{width:35px;height:35px;border-radius:9px;background:#20152d;color:#b26aff;display:grid;place-items:center;font-size:20px;margin-bottom:10px}.upload-card strong{font-size:13px}.upload-card small{color:#696771;margin-top:6px}.file-name{font-size:11px;color:#a863ee;margin-top:9px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.declaration{margin-top:25px;background:#0c0c10;border:1px solid #292832;border-radius:10px;padding:15px}.declaration label{display:flex;gap:10px;font-size:12px;color:#aaa7b0;line-height:1.5}.declaration input{accent-color:#813fd5;margin-top:2px}.success{display:none;text-align:center;background:#101015;border:1px solid #24232b;border-radius:16px;padding:65px 30px}.success.show{display:block}.success-icon{width:60px;height:60px;border-radius:50%;background:#1c3b2a;color:#67d995;display:grid;place-items:center;font-size:28px;margin:0 auto 20px}.success h2{font-size:28px;margin:4px 0 8px}.registration-id{display:inline-flex;flex-direction:column;gap:5px;margin:25px auto;padding:14px 25px;border:1px solid #302e38;border-radius:10px;background:#0b0b0f}.registration-id span{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#77747e}.registration-id strong{font-size:18px;color:#c083ff}.muted{font-size:12px;max-width:520px;margin:auto}footer{text-align:center;color:#55535d;font-size:11px;padding:25px}@media(max-width:700px){.topbar{padding:0 18px}.secure{display:none}.container{padding:30px 15px}.intro{align-items:flex-start}.intro h1{font-size:29px}.progress-item label{display:none}.grid,.upload-grid{grid-template-columns:1fr}.form-step{padding:20px}.line{margin:0 8px}.step-badge{font-size:11px}}
+* {
+  box-sizing: border-box;
+}
 
-/* STEP 4 — Demo Agreement additions; original BAASH styling above is preserved */
-.agreement-box{max-height:390px;overflow:auto;background:#0b0b0f;border:1px solid #302f38;border-radius:10px;padding:20px;color:#aaa7b0;line-height:1.65;font-size:12px}
-.agreement-box h3{color:#eee;margin:0 0 8px;font-size:16px}
-.agreement-box h4{color:#d7d3dd;margin:18px 0 5px;font-size:13px}
-.agreement-box p{color:#aaa7b0;margin:0 0 8px}
-.demo-label{display:inline-block;padding:6px 9px;border:1px solid #6b4a23;border-radius:7px;background:#241b10;color:#e8b66c;font-size:10px;font-weight:800;letter-spacing:1px;margin-bottom:14px}
-.contract-fields{margin-top:20px}
-.contract-check{display:flex;gap:10px;align-items:flex-start;font-size:12px;color:#aaa7b0;line-height:1.5}
-.contract-check input{accent-color:#813fd5;margin-top:2px}
-.signature-wrap{margin-top:18px}
-.signature-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.signature-head label{font-size:12px;font-weight:600;color:#c6c3cc}
-.signature-clear{border:0;background:transparent;color:#b36aff;font-size:11px;cursor:pointer}
-.signature-pad{width:100%;height:180px;background:#0b0b0f;border:1px solid #302f38;border-radius:9px;display:block;touch-action:none;cursor:crosshair}
-.contract-note{font-size:11px;color:#696771;margin-top:8px}
+body {
+  margin: 0;
+  background: #08080b;
+  color: #f4f3f7;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+.page {
+  min-height: 100vh;
+}
+
+
+/* =====================================================
+   TOP BAR
+===================================================== */
+
+.topbar {
+  height: 76px;
+  border-bottom: 1px solid #202027;
+  background: #0b0b0f;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 5%;
+
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+
+.brand-mark {
+  width: 38px;
+  height: 38px;
+
+  border-radius: 11px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #8d48ff,
+      #4d1ca4
+    );
+
+  display: grid;
+  place-items: center;
+
+  font-size: 21px;
+  font-weight: 800;
+}
+
+
+.brand-name {
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+
+.brand-sub {
+  font-size: 11px;
+  color: #77747f;
+  margin-top: 1px;
+}
+
+
+.secure {
+  font-size: 12px;
+  color: #9996a2;
+}
+
+
+/* =====================================================
+   CONTAINER
+===================================================== */
+
+.container {
+  max-width: 1050px;
+  margin: auto;
+
+  padding:
+    48px 24px 35px;
+}
+
+
+/* =====================================================
+   INTRO
+===================================================== */
+
+.intro {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+
+  margin-bottom: 35px;
+}
+
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 1.8px;
+  color: #a765ff;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+
+h1 {
+  font-size: 36px;
+  margin: 0 0 8px;
+  letter-spacing: -1px;
+}
+
+
+p {
+  color: #92909a;
+  margin: 0;
+  line-height: 1.6;
+}
+
+
+.step-badge {
+  border: 1px solid #2a2931;
+  border-radius: 10px;
+
+  padding: 10px 14px;
+
+  color: #aaa7b1;
+  font-size: 13px;
+}
+
+
+.step-badge span {
+  color: #fff;
+  font-weight: 700;
+}
+
+
+/* =====================================================
+   PROGRESS
+===================================================== */
+
+.progress {
+  display: flex;
+  align-items: center;
+
+  margin-bottom: 30px;
+}
+
+
+.progress-item {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  color: #686570;
+  font-size: 12px;
+
+  white-space: nowrap;
+}
+
+
+.progress-item span {
+  width: 30px;
+  height: 30px;
+
+  border: 1px solid #303039;
+  border-radius: 50%;
+
+  display: grid;
+  place-items: center;
+}
+
+
+.progress-item.active {
+  color: #eae8ef;
+}
+
+
+.progress-item.active span {
+  background: #7435c7;
+  border-color: #8c4be8;
+  color: white;
+}
+
+
+.progress-item.done span {
+  background: #33204d;
+  border-color: #7c40c8;
+  color: #d9baff;
+}
+
+
+.line {
+  height: 1px;
+  background: #27262e;
+
+  flex: 1;
+
+  margin: 0 15px;
+}
+
+
+/* =====================================================
+   FORM
+===================================================== */
+
+.form-step {
+  display: none;
+
+  background: #101015;
+
+  border: 1px solid #24232b;
+
+  border-radius: 16px;
+
+  padding: 30px;
+
+  box-shadow:
+    0 18px 50px #0005;
+}
+
+
+.form-step.active {
+  display: block;
+}
+
+
+.section-title {
+  margin-bottom: 28px;
+}
+
+
+.section-title h2 {
+  margin: 0 0 6px;
+  font-size: 20px;
+}
+
+
+/* =====================================================
+   GRID
+===================================================== */
+
+.grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, 1fr);
+
+  gap: 20px;
+}
+
+
+.field.full {
+  grid-column: 1 / -1;
+}
+
+
+/* =====================================================
+   FIELDS
+===================================================== */
+
+.field label {
+  display: block;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  color: #c6c3cc;
+
+  margin-bottom: 8px;
+}
+
+
+.field b,
+.upload-card b {
+  color: #b36aff;
+}
+
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+
+  background: #0b0b0f;
+
+  border: 1px solid #302f38;
+
+  color: #eee;
+
+  border-radius: 9px;
+
+  padding: 13px 14px;
+
+  outline: none;
+
+  font-size: 14px;
+
+  transition: .2s;
+}
+
+
+.field textarea {
+  min-height: 105px;
+  resize: vertical;
+}
+
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: #8143d0;
+
+  box-shadow:
+    0 0 0 3px #7435c720;
+}
+
+
+.field select {
+  appearance: auto;
+}
+
+
+/* =====================================================
+   ACTIONS
+===================================================== */
+
+.actions {
+  display: flex;
+
+  justify-content: flex-end;
+
+  gap: 12px;
+
+  margin-top: 30px;
+
+  padding-top: 22px;
+
+  border-top: 1px solid #24232b;
+}
+
+
+.btn {
+  border: 0;
+
+  border-radius: 9px;
+
+  padding: 12px 20px;
+
+  font-weight: 700;
+
+  font-size: 13px;
+
+  cursor: pointer;
+}
+
+
+.btn.primary {
+  background: #7838cf;
+  color: white;
+}
+
+
+.btn.primary:hover {
+  background: #8a48e1;
+}
+
+
+.btn.primary:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+
+.btn.secondary {
+  background: #1a191f;
+
+  color: #c7c4cc;
+
+  border: 1px solid #302f38;
+}
+
+
+/* =====================================================
+   UPLOADS
+===================================================== */
+
+.upload-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, 1fr);
+
+  gap: 16px;
+}
+
+
+.upload-card {
+  min-height: 150px;
+
+  border: 1px dashed #3b3945;
+
+  border-radius: 12px;
+
+  background: #0c0c11;
+
+  padding: 20px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  text-align: center;
+
+  cursor: pointer;
+
+  transition: .2s;
+}
+
+
+.upload-card:hover {
+  border-color: #8447d4;
+  background: #121019;
+}
+
+
+.upload-card input {
+  display: none;
+}
+
+
+.upload-icon {
+  width: 35px;
+  height: 35px;
+
+  border-radius: 9px;
+
+  background: #20152d;
+
+  color: #b26aff;
+
+  display: grid;
+  place-items: center;
+
+  font-size: 20px;
+
+  margin-bottom: 10px;
+}
+
+
+.upload-card strong {
+  font-size: 13px;
+}
+
+
+.upload-card small {
+  color: #696771;
+
+  margin-top: 6px;
+}
+
+
+.file-name {
+  font-size: 11px;
+
+  color: #a863ee;
+
+  margin-top: 9px;
+
+  max-width: 100%;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+/* =====================================================
+   DECLARATION
+===================================================== */
+
+.declaration {
+  margin-top: 25px;
+
+  background: #0c0c10;
+
+  border: 1px solid #292832;
+
+  border-radius: 10px;
+
+  padding: 15px;
+}
+
+
+.declaration label {
+  display: flex;
+
+  gap: 10px;
+
+  font-size: 12px;
+
+  color: #aaa7b0;
+
+  line-height: 1.5;
+}
+
+
+.declaration input {
+  accent-color: #813fd5;
+
+  margin-top: 2px;
+}
+
+
+/* =====================================================
+   AGREEMENT
+===================================================== */
+
+.demo-label {
+  display: inline-block;
+
+  padding: 6px 9px;
+
+  border: 1px solid #6b4a23;
+
+  border-radius: 7px;
+
+  background: #241b10;
+
+  color: #e8b66c;
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+  letter-spacing: 1px;
+
+  margin-bottom: 14px;
+}
+
+
+.agreement-box {
+  max-height: 390px;
+
+  overflow: auto;
+
+  background: #0b0b0f;
+
+  border: 1px solid #302f38;
+
+  border-radius: 10px;
+
+  padding: 20px;
+
+  color: #aaa7b0;
+
+  line-height: 1.65;
+
+  font-size: 12px;
+}
+
+
+.agreement-box h3 {
+  color: #eee;
+
+  margin: 0 0 8px;
+
+  font-size: 16px;
+}
+
+
+.agreement-box h4 {
+  color: #d7d3dd;
+
+  margin: 18px 0 5px;
+
+  font-size: 13px;
+}
+
+
+.agreement-box p {
+  color: #aaa7b0;
+
+  margin: 0 0 8px;
+}
+
+
+.contract-fields {
+  margin-top: 20px;
+}
+
+
+.contract-check {
+  display: flex;
+
+  gap: 10px;
+
+  align-items: flex-start;
+
+  font-size: 12px;
+
+  color: #aaa7b0;
+
+  line-height: 1.5;
+}
+
+
+.contract-check input {
+  accent-color: #813fd5;
+
+  margin-top: 2px;
+}
+
+
+.signature-wrap {
+  margin-top: 18px;
+}
+
+
+.signature-head {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin-bottom: 8px;
+}
+
+
+.signature-head label {
+  font-size: 12px;
+
+  font-weight: 600;
+
+  color: #c6c3cc;
+}
+
+
+.signature-clear {
+  border: 0;
+
+  background: transparent;
+
+  color: #b36aff;
+
+  font-size: 11px;
+
+  cursor: pointer;
+}
+
+
+.signature-pad {
+  width: 100%;
+
+  height: 180px;
+
+  background: #0b0b0f;
+
+  border: 1px solid #302f38;
+
+  border-radius: 9px;
+
+  display: block;
+
+  touch-action: none;
+
+  cursor: crosshair;
+}
+
+
+.contract-note {
+  font-size: 11px;
+
+  color: #696771;
+
+  margin-top: 8px;
+}
+
+
+/* =====================================================
+   SUCCESS
+===================================================== */
+
+.success {
+  display: none;
+
+  text-align: center;
+
+  background: #101015;
+
+  border: 1px solid #24232b;
+
+  border-radius: 16px;
+
+  padding: 65px 30px;
+}
+
+
+.success.show {
+  display: block;
+}
+
+
+.success-icon {
+  width: 60px;
+  height: 60px;
+
+  border-radius: 50%;
+
+  background: #1c3b2a;
+
+  color: #67d995;
+
+  display: grid;
+
+  place-items: center;
+
+  font-size: 28px;
+
+  margin: 0 auto 20px;
+}
+
+
+.success h2 {
+  font-size: 28px;
+
+  margin: 4px 0 8px;
+}
+
+
+.registration-id {
+  display: inline-flex;
+
+  flex-direction: column;
+
+  gap: 5px;
+
+  margin: 25px auto;
+
+  padding: 14px 25px;
+
+  border: 1px solid #302e38;
+
+  border-radius: 10px;
+
+  background: #0b0b0f;
+}
+
+
+.registration-id span {
+  font-size: 10px;
+
+  text-transform: uppercase;
+
+  letter-spacing: 1px;
+
+  color: #77747e;
+}
+
+
+.registration-id strong {
+  font-size: 18px;
+
+  color: #c083ff;
+}
+
+
+.muted {
+  font-size: 12px;
+
+  max-width: 520px;
+
+  margin: auto;
+}
+
+
+/* =====================================================
+   FOOTER
+===================================================== */
+
+footer {
+  text-align: center;
+
+  color: #55535d;
+
+  font-size: 11px;
+
+  padding: 25px;
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media(max-width:700px) {
+
+  .topbar {
+    padding: 0 18px;
+  }
+
+  .secure {
+    display: none;
+  }
+
+  .container {
+    padding: 30px 15px;
+  }
+
+  .intro {
+    align-items: flex-start;
+  }
+
+  .intro h1 {
+    font-size: 29px;
+  }
+
+  .progress-item label {
+    display: none;
+  }
+
+  .grid,
+  .upload-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-step {
+    padding: 20px;
+  }
+
+  .line {
+    margin: 0 8px;
+  }
+
+  .step-badge {
+    font-size: 11px;
+  }
+
+}
