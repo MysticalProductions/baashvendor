@@ -3,11 +3,9 @@
 ========================================================= */
 
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbxCttSaWEs7dsnd-vusjdLvyPyqerUGst00W9qcYS5NvC38yEtprGT8pXc2JGohOEo/exec";
-
+  "https://script.google.com/macros/s/AKfycbxMz48LASOHJ4lMvArhtYQpjl-Kp-GSVRN0CN_6YSL8yBAWHJ7ayAK9FejV7H8Br-77/exec";
 
 let currentStep = 1;
-
 let hasSignature = false;
 
 const form =
